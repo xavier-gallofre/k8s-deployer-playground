@@ -138,22 +138,41 @@ Request sin header o X-User-Group: stable
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: api-rollout
+  name: api-rollout-ab
 spec:
   replicas: 4
+  selector:
+    matchLabels:
+      app: api-ab
+  template:
+    metadata:
+      labels:
+        app: api-ab
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:0.2.3
+        args:
+        - "-listen=:8081"
+        - "-text=API A/B testing"
+        ports:
+        - containerPort: 8081
   strategy:
     canary:
-      canaryService: api-canary
-      stableService: api-stable
+      canaryService: api-ab-canary
+      stableService: api-ab-stable
       trafficRouting:
         istio:
           virtualServices:
-          - name: api-vsvc
+          - name: api-ab-vsvc
             routes:
             - primary
       analysis:
         templates:
         - templateName: success-rate
+        args:
+        - name: service-name
+          value: api-ab-canary.demo.svc.cluster.local
       steps:
       - setWeight: 20
       - pause: {duration: 5m}
@@ -168,21 +187,23 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: api-vsvc
+  name: api-ab-vsvc
 spec:
   hosts:
   - api
   http:
-  - match:
+  - name: canary
+    match:
     - headers:
         x-user-group:
           exact: beta
     route:
     - destination:
-        host: api-canary
-  - route:
+        host: api-ab-canary
+  - name: primary
+    route:
     - destination:
-        host: api-stable
+        host: api-ab-stable
 ```
 
 ### Cuándo usar

@@ -48,8 +48,9 @@ graph TD
 **para** organizar los recursos de forma clara y consistente.
 
 **Criterios de aceptación:**
-- Directorios creados: `docs/`, `scripts/`, `apps/`, `argocd/`, `istio/`, `ingress/`
-- Subdirectorios: `apps/microservices-demo/{base,canary,bluegreen,abtesting}`, `apps/nginx-comparison`, `ingress/{nginx,traefik}`
+- Directorios creados: `docs/`, `scripts/`, `apps/`, `argocd/`, `istio/`
+- Subdirectorios: `apps/microservices-demo/{base,canary,bluegreen,abtesting}`, `apps/nginx-comparison`
+- Ingress resources en `apps/nginx-comparison/ingresses.yaml` (consolidados)
 - Estructura coherente con el README
 
 ### US-01: Documentación inicial ✅
@@ -454,7 +455,7 @@ graph TD
 |---|---|---|
 | US-28 | Fix inconsistencias en scripts y docs (placeholders, versiones, recursos) | ✅ |
 | US-29 | Fix docs (Mermaid, summary, guía manual) | ✅ |
-| US-30 | Reconciliar estrategias docs con manifests reales | ⬜ |
+| US-30 | Reconciliar estrategias docs con manifests reales | ✅ |
 
 ### US-28: Fix inconsistencias en scripts y docs ✅
 
@@ -482,7 +483,7 @@ graph TD
 - `docs/guia-setup.md` tiene `--profile` en todos los `minikube addons enable`
 - `docs/guia-setup.md` incluye pasos de limpieza manual
 
-### US-30: Reconciliar estrategias docs con manifests ⬜
+### US-30: Reconciliar estrategias docs con manifests ✅
 
 **Como** usuario del playground,
 **quiero** que los ejemplos en la documentación coincidan con los manifests reales,
