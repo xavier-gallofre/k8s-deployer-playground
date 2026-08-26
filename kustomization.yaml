@@ -19,6 +19,19 @@ resources:
 - apps/nginx-comparison/service.yaml
 - apps/nginx-comparison/ingresses.yaml
 
+# Canary strategy
+- apps/microservices-demo/canary/rollout-canary.yaml
+- apps/microservices-demo/canary/analysis-template.yaml
+- apps/microservices-demo/canary/ingress.yaml
+
+# Blue/Green strategy
+- apps/microservices-demo/bluegreen/rollout-bluegreen.yaml
+- apps/microservices-demo/bluegreen/ingress.yaml
+
+# A/B Testing strategy
+- apps/microservices-demo/abtesting/rollout-ab.yaml
+- apps/microservices-demo/abtesting/ingress.yaml
+
 # Istio
 - istio/gateway.yaml
 

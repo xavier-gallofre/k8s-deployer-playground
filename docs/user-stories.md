@@ -317,7 +317,7 @@ graph TD
 | US | Descripción | Estado |
 |---|---|---|
 | US-20 | Crear control panel con URLs | ✅ |
-| US-21 | Actualizar kustomization.yaml | ⬜ |
+| US-21 | Actualizar kustomization.yaml | ✅ |
 | US-22 | Actualizar documentación final | ⬜ |
 | US-23 | Integrar Helm como prerequisito en scripts | ✅ |
 
@@ -345,7 +345,7 @@ graph TD
 | Prometheus | Port-forward a istio-system | 9090 |
 | Grafana | Port-forward a istio-system | 3000 |
 
-### US-21: Actualizar kustomization.yaml ⬜
+### US-21: Actualizar kustomization.yaml ✅
 
 **Como** desarrollador del playground,
 **quiero** que kustomize despliegue todos los recursos necesarios,
