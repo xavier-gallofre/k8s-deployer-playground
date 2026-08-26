@@ -19,9 +19,6 @@ resources:
 - apps/nginx-comparison/service.yaml
 - apps/nginx-comparison/ingresses.yaml
 
-# Ingress
-- ingress/ingress-class.yaml
-
 # Istio
 - istio/gateway.yaml
 

@@ -214,7 +214,7 @@ graph TD
 |---|---|---|
 | US-13 | Instalar Argo Rollouts controller | ✅ |
 | US-14 | Instalar Traefik addon | ✅ |
-| US-15 | Configurar Ingress resources | ⬜ |
+| US-15 | Configurar Ingress resources | ✅ |
 | US-16 | Configurar Istio Gateway + routing | ⬜ |
 
 ### US-13: Instalar Argo Rollouts controller ✅
@@ -241,7 +241,7 @@ graph TD
 - NodePort asignado para acceso externo
 - Dashboard de Traefik accesible
 
-### US-15: Configurar Ingress resources ⬜
+### US-15: Configurar Ingress resources ✅
 
 **Como** usuario del playground,
 **quiero** poder acceder a las apps via Ingress (NGINX y Traefik),
