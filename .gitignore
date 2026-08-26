@@ -34,3 +34,4 @@ charts/
 # Kubernetes - archivos de contexto
 kubeconfig
 *.kubeconfig
+session-*.md
