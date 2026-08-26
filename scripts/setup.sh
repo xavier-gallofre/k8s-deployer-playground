@@ -267,6 +267,11 @@ install_istio() {
         kubectl apply -f "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/ztunnel.yaml" 2>/dev/null || \
         log_warn "Ztunnel ambient mode no disponible, usando modo clásico"
 
+    log_step "Instalando addons de Istio (Prometheus, Grafana, Kiali)"
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/prometheus.yaml" 2>/dev/null || true
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/grafana.yaml" 2>/dev/null || true
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/kiali.yaml" 2>/dev/null || true
+
     log_success "Istio instalado"
 }
 

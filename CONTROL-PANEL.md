@@ -96,6 +96,14 @@ Abre http://localhost:3100 en tu navegador.
 | `frontend-vsvc` | frontend | playground-gateway |
 | `api-vsvc` | api | playground-gateway |
 
+**Dashboards:**
+
+| Dashboard | Cómo acceder |
+|---|---|
+| **Kiali** | `istioctl dashboard kiali` |
+| **Prometheus** | `kubectl port-forward -n istio-system svc/prometheus 9090:9090` |
+| **Grafana** | `kubectl port-forward -n istio-system svc/grafana 3000:3000` |
+
 ---
 
 ## IPs y puertos importantes

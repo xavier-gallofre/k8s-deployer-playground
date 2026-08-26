@@ -393,7 +393,7 @@ graph TD
 | US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ✅ |
 | US-25 | Unificar scripts setup.sh + install-*.sh | ✅ |
 | US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ✅ |
-| US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ⬜ |
+| US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ✅ |
 
 ### US-24: Fix Argo CD placeholder + sincronizar versiones en docs ✅
 
@@ -433,7 +433,7 @@ graph TD
 - `CONTROL-PANEL.md` incluye NGINX en tabla de acceso rápido
 - `scripts/teardown.sh` limpia Helm releases de Traefik/NGINX
 
-### US-27: Instalar Kiali/Prometheus/Grafana en setup.sh ⬜
+### US-27: Instalar Kiali/Prometheus/Grafana en setup.sh ✅
 
 **Como** usuario del playground,
 **quiero** tener Kiali, Prometheus y Grafana instalados automáticamente,
