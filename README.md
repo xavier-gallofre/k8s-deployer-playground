@@ -64,6 +64,10 @@ Ver [docs/estrategias-despliegue.md](docs/estrategias-despliegue.md) para detall
     └── traefik/
 ```
 
+## User Stories
+
+Ver [docs/user-stories.md](docs/user-stories.md) para el seguimiento de requisitos y estado de cada iteración.
+
 ## Teardown
 
 ```bash
