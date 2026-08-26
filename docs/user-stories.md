@@ -212,12 +212,12 @@ graph TD
 
 | US | Descripción | Estado |
 |---|---|---|
-| US-13 | Instalar Argo Rollouts controller | ⬜ |
+| US-13 | Instalar Argo Rollouts controller | ✅ |
 | US-14 | Instalar Traefik addon | ⬜ |
 | US-15 | Configurar Ingress resources | ⬜ |
 | US-16 | Configurar Istio Gateway + routing | ⬜ |
 
-### US-13: Instalar Argo Rollouts controller ⬜
+### US-13: Instalar Argo Rollouts controller ✅
 
 **Como** ingeniero que quiere practicar despliegues progresivos,
 **quiero** que el controller de Argo Rollouts esté instalado,
