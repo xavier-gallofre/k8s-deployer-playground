@@ -63,6 +63,8 @@ check_prerequisites() {
         rm minikube-linux-amd64
     fi
 
+    install_helm
+
     if ! check_command "argocd" 2>/dev/null; then
         log_info "Instalando CLI de Argo CD..."
         curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
@@ -221,7 +223,14 @@ install_traefik() {
         return
     fi
 
-    minikube addons enable traefik --profile="$PLAYGROUND_PROFILE" || true
+    helm repo add traefik https://traefik.github.io/charts 2>/dev/null || true
+    helm repo update
+
+    helm install traefik traefik/traefik \
+        --namespace kube-system \
+        --set service.type=LoadBalancer \
+        --set resources.requests.cpu=50m \
+        --set resources.requests.memory=64Mi
 
     wait_for_deployment "kube-system" "traefik"
 

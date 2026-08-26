@@ -10,6 +10,8 @@ source "$SCRIPT_DIR/helpers.sh"
 main() {
     log_step "Instalando Traefik (Helm)"
 
+    install_helm
+
     if kubectl get deployment traefik -n kube-system &>/dev/null; then
         log_warn "Traefik ya instalado. ¿Reinstalar? (s/N)"
         read -p "> " confirm
@@ -26,8 +28,6 @@ main() {
     # Instalar
     helm install traefik traefik/traefik \
         --namespace kube-system \
-        --set ports.web.nodePort=30080 \
-        --set ports.websecure.nodePort=30443 \
         --set service.type=LoadBalancer \
         --set resources.requests.cpu=100m \
         --set resources.requests.memory=128Mi

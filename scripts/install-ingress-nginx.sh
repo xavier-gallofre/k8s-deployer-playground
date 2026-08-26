@@ -10,6 +10,8 @@ source "$SCRIPT_DIR/helpers.sh"
 main() {
     log_step "Instalando NGINX Ingress Controller (Helm)"
 
+    install_helm
+
     if kubectl get ns ingress-nginx &>/dev/null; then
         log_warn "NGINX Ingress ya instalado. ¿Reinstalar? (s/N)"
         read -p "> " confirm

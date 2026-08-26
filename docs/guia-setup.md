@@ -9,7 +9,7 @@
 | Docker | 20.10+ | Runtime para Minikube |
 | kubectl | 1.28+ | CLI de Kubernetes |
 | curl | cualquier | Descargas |
-| helm | 3.12+ | Gestor de paquetes (opcional) |
+| helm | 3.12+ | Gestor de paquetes de Kubernetes |
 
 ### Verificar prerrequisitos
 
@@ -17,6 +17,7 @@
 docker --version
 kubectl version --client
 curl --version
+helm version
 ```
 
 ## Paso 1: Instalar Minikube
@@ -41,7 +42,33 @@ brew install minikube
 choco install minikube
 ```
 
-## Paso 2: Iniciar el clúster
+## Paso 2: Instalar Helm
+
+### Linux
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+### macOS
+
+```bash
+brew install helm
+```
+
+### Windows
+
+```powershell
+choco install kubernetes-helm
+```
+
+### Verificar
+
+```bash
+helm version
+```
+
+## Paso 3: Iniciar el clúster
 
 ```bash
 minikube start \
@@ -59,7 +86,7 @@ minikube status
 kubectl get nodes
 ```
 
-## Paso 3: Instalar MetalLB (LoadBalancer local)
+## Paso 4: Instalar MetalLB (LoadBalancer local)
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
@@ -97,7 +124,7 @@ spec:
 EOF
 ```
 
-## Paso 4: Instalar NGINX Ingress Controller
+## Paso 5: Instalar NGINX Ingress Controller
 
 ```bash
 minikube addons enable ingress
@@ -109,10 +136,16 @@ Verificar:
 kubectl get pods -n ingress-nginx
 ```
 
-## Paso 5: Instalar Traefik
+## Paso 6: Instalar Traefik
 
 ```bash
-minikube addons enable traefik
+helm repo add traefik https://traefik.github.io/charts
+helm repo update
+helm install traefik traefik/traefik \
+  --namespace kube-system \
+  --set service.type=LoadBalancer \
+  --set resources.requests.cpu=50m \
+  --set resources.requests.memory=64Mi
 ```
 
 Verificar:
@@ -121,9 +154,9 @@ Verificar:
 kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
-**Nota:** NGINX y Traefik no pueden usar los mismos puertos. El addon Traefik usa NodePort (30080/30443) si NGINX ya está activo.
+**Nota:** NGINX y Traefik coexisten en el mismo clúster con IngressClasses diferentes (`nginx` y `traefik`). MetalLB asigna IPs externas a ambos.
 
-## Paso 6: Instalar Istio
+## Paso 7: Instalar Istio
 
 ### Descargar istioctl
 
@@ -145,7 +178,7 @@ istioctl install --set profile=minimal -y
 kubectl get pods -n istio-system
 ```
 
-## Paso 7: Instalar Argo CD
+## Paso 8: Instalar Argo CD
 
 ```bash
 kubectl create namespace argocd
@@ -174,7 +207,7 @@ minikube service argocd-server -n argocd --url
 Usuario: `admin`  
 Password: (el obtenido arriba)
 
-## Paso 8: Instalar Argo Rollouts
+## Paso 9: Instalar Argo Rollouts
 
 ```bash
 kubectl create namespace argo-rollouts
@@ -195,7 +228,7 @@ rm kubectl-argo-rollouts-linux-amd64
 kubectl argo rollouts version
 ```
 
-## Paso 9: Desplegar aplicaciones
+## Paso 10: Desplegar aplicaciones
 
 ### Opción A: Usar Kustomize
 
@@ -225,7 +258,7 @@ kubectl apply -f apps/microservices-demo/bluegreen/
 kubectl apply -f apps/microservices-demo/abtesting/
 ```
 
-## Paso 10: Probar el entorno
+## Paso 11: Probar el entorno
 
 ### Verificar pods
 

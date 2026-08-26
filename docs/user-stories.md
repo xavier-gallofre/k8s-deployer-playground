@@ -319,6 +319,7 @@ graph TD
 | US-20 | Crear control panel con URLs | ⬜ |
 | US-21 | Actualizar kustomization.yaml | ⬜ |
 | US-22 | Actualizar documentación final | ⬜ |
+| US-23 | Integrar Helm como prerequisito en scripts | ✅ |
 
 ### US-20: Crear control panel con URLs ⬜
 
@@ -367,3 +368,17 @@ graph TD
 - `docs/arquitectura.md` incluye los componentes realmente existentes
 - Diagramas Mermaid actualizados
 - README con enlace a User Stories
+
+### US-23: Integrar Helm como prerequisito en scripts ✅
+
+**Como** operador del playground,
+**quiero** que Helm se instale automáticamente como prerequisito,
+**para** que los scripts de instalación de Traefik y NGINX funcionen sin intervención manual.
+
+**Criterios de aceptación:**
+- Función `install_helm()` en `scripts/helpers.sh`
+- `setup.sh` instala Helm en la sección de prerequisitos
+- `setup.sh` instala Traefik via Helm (no via addon de Minikube)
+- `install-traefik.sh` e `install-ingress-nginx.sh` usan la función helper
+- `docs/guia-setup.md` lista Helm como prerequisito requerido con pasos de instalación
+- `.env.example` incluye `HELM_VERSION` como opción comentada

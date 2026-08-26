@@ -72,6 +72,20 @@ log_step() {
 }
 
 # =============================================================================
+# Instaladores de herramientas
+# =============================================================================
+install_helm() {
+    if check_command helm 2>/dev/null; then
+        log_success "Helm ya está instalado: $(helm version --short 2>/dev/null)"
+        return 0
+    fi
+
+    log_step "Instalando Helm"
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    log_success "Helm instalado: $(helm version --short 2>/dev/null)"
+}
+
+# =============================================================================
 # Utilidades
 # =============================================================================
 check_command() {
