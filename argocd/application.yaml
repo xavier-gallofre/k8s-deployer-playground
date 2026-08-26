@@ -29,7 +29,9 @@ metadata:
 spec:
   project: playground
   source:
-    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    # REEMPLAZAR con la URL de tu repositorio Git
+    # Ejemplo: https://github.com/tu-usuario/k8s-deployer-playground.git
+    repoURL: https://github.com/tu-usuario/k8s-deployer-playground.git
     targetRevision: HEAD
     path: apps/microservices-demo/base
   destination:
@@ -59,7 +61,9 @@ metadata:
 spec:
   project: playground
   source:
-    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    # REEMPLAZAR con la URL de tu repositorio Git
+    # Ejemplo: https://github.com/tu-usuario/k8s-deployer-playground.git
+    repoURL: https://github.com/tu-usuario/k8s-deployer-playground.git
     targetRevision: HEAD
     path: apps/nginx-comparison
   destination:

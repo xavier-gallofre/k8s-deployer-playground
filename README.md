@@ -10,10 +10,11 @@ Este proyecto proporciona un clúster Minikube preconfigurado con las herramient
 
 | Componente | Versión | Propósito |
 |---|---|---|
-| Minikube | v1.38.1 | Clúster K8s local |
-| NGINX Ingress | v1.14.x | Controller de ingress clásico (retirado) |
-| Traefik | v3.x | Controller de ingress moderno |
-| Istio | v1.30.x | Service mesh con ambient mode |
+| Minikube | v1.35.0 | Clúster K8s local |
+| Helm | v3.21.4 | Gestor de paquetes |
+| NGINX Ingress | v1.11.3 | Controller de ingress clásico |
+| Traefik | v3.7.11 | Controller de ingress moderno |
+| Istio | v1.30.0 | Service mesh |
 | Argo CD | v3.5.1 | GitOps y sincronización declarativa |
 | Argo Rollouts | v1.9.1 | Despliegues progresivos |
 
@@ -21,6 +22,7 @@ Este proyecto proporciona un clúster Minikube preconfigurado con las herramient
 
 - Docker o Podman instalado
 - `kubectl` configurado
+- `curl` disponible
 - Mínimo 4GB RAM libre
 - ~10GB de espacio en disco
 
@@ -56,13 +58,20 @@ Ver [docs/estrategias-despliegue.md](docs/estrategias-despliegue.md) para detall
 ├── scripts/                 # Scripts de automatización
 ├── apps/                    # Aplicaciones de ejemplo
 │   ├── microservices-demo/  # App multi-servicio con Rollouts
+│   │   ├── base/            # Deployments y Services base
+│   │   ├── canary/          # Estrategia Canary
+│   │   ├── bluegreen/       # Estrategia Blue/Green
+│   │   └── abtesting/       # Estrategia A/B Testing
 │   └── nginx-comparison/    # Comparativa NGINX vs Traefik
 ├── argocd/                  # Configuraciones de Argo CD
 ├── istio/                   # Configuraciones de Istio
-└── ingress/                 # Configuraciones de Ingress
-    ├── nginx/
-    └── traefik/
+├── CONTROL-PANEL.md         # URLs de acceso a todas las UIs
+└── kustomization.yaml       # Kustomize root
 ```
+
+## Control Panel
+
+Ver [CONTROL-PANEL.md](CONTROL-PANEL.md) para URLs de acceso a Argo CD, Traefik Dashboard, Argo Rollouts, y otros servicios.
 
 ## User Stories
 

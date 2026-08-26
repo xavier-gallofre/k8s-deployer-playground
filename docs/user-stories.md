@@ -390,12 +390,12 @@ graph TD
 
 | US | Descripción | Estado |
 |---|---|---|
-| US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ⬜ |
+| US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ✅ |
 | US-25 | Unificar scripts setup.sh + install-*.sh | ⬜ |
 | US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ⬜ |
 | US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ⬜ |
 
-### US-24: Fix Argo CD placeholder + sincronizar versiones en docs ⬜
+### US-24: Fix Argo CD placeholder + sincronizar versiones en docs ✅
 
 **Como** usuario del playground,
 **quiero** que los repositorios de Argo CD apunten a URLs reales y las versiones estén sincronizadas entre docs,

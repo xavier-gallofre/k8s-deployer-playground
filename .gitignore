@@ -22,10 +22,10 @@ logs/
 .minikube/
 
 # Binarios descargados durante setup
-argocd
-kubectl-argo-rollouts*
-istio-*/
-minikube-linux-amd64
+/argocd
+/kubectl-argo-rollouts*
+/istio-*/
+/minikube-linux-amd64
 
 # Helm
 chartsvc/
