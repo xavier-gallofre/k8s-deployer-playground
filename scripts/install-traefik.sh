@@ -29,8 +29,8 @@ main() {
     helm install traefik traefik/traefik \
         --namespace kube-system \
         --set service.type=LoadBalancer \
-        --set resources.requests.cpu=100m \
-        --set resources.requests.memory=128Mi
+        --set resources.requests.cpu=50m \
+        --set resources.requests.memory=64Mi
 
     wait_for_deployment "kube-system" "traefik"
 

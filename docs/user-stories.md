@@ -450,11 +450,11 @@ graph TD
 
 | US | Descripción | Estado |
 |---|---|---|
-| US-28 | Fix inconsistencias en scripts y docs (placeholders, versiones, recursos) | ⬜ |
+| US-28 | Fix inconsistencias en scripts y docs (placeholders, versiones, recursos) | ✅ |
 | US-29 | Fix docs (Mermaid, summary, guía manual) | ⬜ |
 | US-30 | Reconciliar estrategias docs con manifests reales | ⬜ |
 
-### US-28: Fix inconsistencias en scripts y docs ⬜
+### US-28: Fix inconsistencias en scripts y docs ✅
 
 **Como** usuario del playground,
 **quiero** que no haya contradicciones entre scripts individuales y setup.sh,

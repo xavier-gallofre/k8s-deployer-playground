@@ -118,8 +118,8 @@ Minikube (recomendado):
 |---|---|---|
 | 30246 | NGINX Ingress HTTP | `minikube ip:30246` |
 | 31594 | NGINX Ingress HTTPS | `minikube ip:31594` |
-| 80 | Traefik HTTP | `192.168.58.200` (LB) |
-| 443 | Traefik HTTPS | `192.168.58.200` (LB) |
+| 80 | Traefik HTTP | IP de LoadBalancer (ver `kubectl get svc traefik -n kube-system`) |
+| 443 | Traefik HTTPS | IP de LoadBalancer (ver `kubectl get svc traefik -n kube-system`) |
 | 30000-32767 | NodePort Services | `minikube ip:<port>` |
 | 8080 | Argo CD UI | `minikube service argocd-server -n argocd` |
 | 9000 | Traefik Dashboard | `minikube service traefik -n kube-system` |
