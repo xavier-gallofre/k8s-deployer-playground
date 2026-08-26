@@ -31,9 +31,9 @@ main() {
 
     # Instalar sample de addons (Kiali, Prometheus, etc.)
     log_info "Instalando addons de Istio..."
-    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/prometheus.yaml" 2>/dev/null || true
-    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/grafana.yaml" 2>/dev/null || true
-    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/kiali.yaml" 2>/dev/null || true
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/${ISTIO_VERSION}/samples/addons/prometheus.yaml" 2>/dev/null || true
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/${ISTIO_VERSION}/samples/addons/grafana.yaml" 2>/dev/null || true
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/${ISTIO_VERSION}/samples/addons/kiali.yaml" 2>/dev/null || true
 
     log_success "Istio instalado"
     echo ""
