@@ -33,6 +33,7 @@ main() {
     delete_applications
     delete_argo
     delete_istio
+    delete_helm_releases
     delete_minikube
     cleanup_local_files
     show_summary
@@ -61,6 +62,17 @@ delete_istio() {
     fi
     kubectl delete namespace istio-system --ignore-not-found --wait=false 2>/dev/null || true
     log_success "Istio eliminado"
+}
+
+delete_helm_releases() {
+    log_step "Eliminando Helm releases"
+
+    if command -v helm &>/dev/null; then
+        helm uninstall traefik -n kube-system 2>/dev/null || true
+        log_success "Helm releases eliminados"
+    else
+        log_info "Helm no instalado, saltando limpieza de releases"
+    fi
 }
 
 delete_minikube() {

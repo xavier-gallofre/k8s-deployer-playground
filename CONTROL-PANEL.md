@@ -2,17 +2,24 @@
 
 ## URLs de acceso rápido
 
+Obtener la IP de Minikube:
+
+```bash
+MINIKUBE_IP=$(minikube ip --profile=k8s-playground)
+```
+
 | UI | URL | Credenciales |
 |---|---|---|
-| **Argo CD** | http://192.168.58.2:30246 | admin / [ver abajo](#argocd) |
-| **Traefik Dashboard** | http://192.168.58.200 | — |
+| **Argo CD** | `http://$MINIKUBE_IP:30246` | admin / [ver abajo](#argocd) |
+| **Traefik Dashboard** | `http://$(minikube service traefik -n kube-system --url --profile=k8s-playground 2>/dev/null)` | — |
+| **NGINX Ingress** | `http://$MINIKUBE_IP:30246` | — |
 | **Argo Rollouts** | port-forward (ver abajo) | — |
 
 ---
 
 ## Argo CD
 
-**Acceso:** `minikube service argocd-server -n argocd --url`
+**Acceso:** `minikube service argocd-server -n argocd --url --profile=k8s-playground`
 
 **Usuario:** `admin`
 
@@ -32,13 +39,29 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ## Traefik
 
-**Acceso directo:** http://192.168.58.200
+**Acceso directo:** Ver IP de LoadBalancer con `kubectl get svc traefik -n kube-system`
 
-**Acceso via minikube:** `minikube service traefik -n kube-system --url`
+**Acceso via minikube:** `minikube service traefik -n kube-system --url --profile=k8s-playground`
 
 **Dashboard:** Habilitado en `kube-system` via Helm chart
 
 **IngressClass:** `traefik`
+
+---
+
+## NGINX Ingress
+
+**Acceso:** `http://$(minikube ip --profile=k8s-playground):30246`
+
+**IngressClass:** `nginx` (default)
+
+**Ingress rules:**
+
+| Host | Servicio |
+|---|---|
+| `frontend.nginx.demo.local` | frontend:8080 |
+| `api.nginx.demo.local` | api:8081 |
+| `nginx.demo.local` | nginx-comparison:8080 |
 
 ---
 
@@ -62,34 +85,6 @@ Abre http://localhost:3100 en tu navegador.
 
 ---
 
-## NGINX Ingress
-
-**Acceso:** http://192.168.58.2:30246
-
-**IngressClass:** `nginx` (default)
-
-**Ingress rules:**
-
-| Host | Servicio |
-|---|---|
-| `frontend.nginx.demo.local` | frontend:8080 |
-| `api.nginx.demo.local` | api:8081 |
-| `nginx.demo.local` | nginx-comparison:8080 |
-
----
-
-## Traefik Ingress
-
-**Ingress rules:**
-
-| Host | Servicio |
-|---|---|
-| `frontend.traefik.demo.local` | frontend:8080 |
-| `api.traefik.demo.local` | api:8081 |
-| `traefik.demo.local` | nginx-comparison:8080 |
-
----
-
 ## Istio
 
 **Gateway:** `playground-gateway` en namespace `demo`
@@ -107,9 +102,9 @@ Abre http://localhost:3100 en tu navegador.
 
 | Componente | IP | Puerto |
 |---|---|---|
-| Minikube | 192.168.58.2 | — |
-| Traefik (LB) | 192.168.58.200 | 80, 443 |
-| MetalLB pool | 192.168.58.200-250 | — |
+| Minikube | `$(minikube ip --profile=k8s-playground)` | — |
+| Traefik (LB) | Ver `kubectl get svc traefik -n kube-system` | 80, 443 |
+| MetalLB pool | `$(minikube ip --profile=k8s-playground)` .200-.250 | — |
 | NGINX Ingress | NodePort | 30246, 31594 |
 
 ---
@@ -136,11 +131,14 @@ kubectl get virtualservice -n demo
 argocd app list
 
 # Acceder a Argo CD UI
-minikube service argocd-server -n argocd --url
+minikube service argocd-server -n argocd --url --profile=k8s-playground
 
 # Acceder a Traefik Dashboard
-minikube service traefik -n kube-system --url
+minikube service traefik -n kube-system --url --profile=k8s-playground
 
 # Abrir Argo Rollouts Dashboard
 kubectl argo rollouts dashboard
+
+# Obtener IP de Minikube
+minikube ip --profile=k8s-playground
 ```

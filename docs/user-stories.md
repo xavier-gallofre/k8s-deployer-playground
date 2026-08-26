@@ -392,7 +392,7 @@ graph TD
 |---|---|---|
 | US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ✅ |
 | US-25 | Unificar scripts setup.sh + install-*.sh | ✅ |
-| US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ⬜ |
+| US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ✅ |
 | US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ⬜ |
 
 ### US-24: Fix Argo CD placeholder + sincronizar versiones en docs ✅
@@ -419,7 +419,7 @@ graph TD
 - Configuración de recursos (CPU/memory) coherente entre scripts
 - MetalLB IP range configurable via `.env`
 
-### US-26: Fix docs menores ⬜
+### US-26: Fix docs menores ✅
 
 **Como** usuario del playground,
 **quiero** que la guía manual, el control panel y el teardown sean consistentes con setup.sh,

@@ -72,6 +72,7 @@ helm version
 
 ```bash
 minikube start \
+  --profile=k8s-playground \
   --driver=docker \
   --cpus=4 \
   --memory=8192 \
@@ -82,26 +83,24 @@ minikube start \
 ### Verificar estado
 
 ```bash
-minikube status
+minikube status --profile=k8s-playground
 kubectl get nodes
 ```
 
 ## Paso 4: Instalar MetalLB (LoadBalancer local)
 
+### Habilitar addon de Minikube
+
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
+minikube addons enable metallb --profile=k8s-playground
 ```
 
-Esperar a que esté listo:
+Esperar a que el webhook esté listo (puede tardar ~1 minuto).
+
+### Configurar pool de IPs
 
 ```bash
-kubectl wait --for=condition=ready pod -l app=metallb -n metallb-system --timeout=120s
-```
-
-Configurar pool de IPs:
-
-```bash
-MINIKUBE_IP=$(minikube ip)
+MINIKUBE_IP=$(minikube ip --profile=k8s-playground)
 
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
@@ -161,7 +160,8 @@ kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik
 ### Descargar istioctl
 
 ```bash
-curl -L https://istio.io/downloadIstio | sh -
+ISTIO_VERSION=1.30.0
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$ISTIO_VERSION sh -
 cd istio-*
 export PATH=$PWD/bin:$PATH
 ```
@@ -169,7 +169,7 @@ export PATH=$PWD/bin:$PATH
 ### Instalar Istio
 
 ```bash
-istioctl install --set profile=minimal -y
+istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
 ```
 
 ### Verificar
