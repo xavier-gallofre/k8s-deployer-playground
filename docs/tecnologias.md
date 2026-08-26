@@ -2,7 +2,7 @@
 
 ## Minikube
 
-**Versión:** v1.38.1  
+**Versión:** v1.35.0  
 **Papel:** Clúster Kubernetes local
 
 Minikube es una herramienta oficial de Kubernetes que ejecuta un clúster de un solo nodo dentro de una máquina virtual o contenedor. Proporciona un entorno completo de Kubernetes para desarrollo y pruebas sin necesidad de infraestructura remota.
@@ -16,33 +16,42 @@ Minikube es una herramienta oficial de Kubernetes que ejecuta un clúster de un 
 
 ### En este playground
 
-Minikube aloja todos los componentes. Se configura con recursos mínimos recomendados (2 CPU, 4GB RAM) y addons específicos para Ingress y metallb.
+Minikube aloja todos los componentes. Se configura con 4 CPU, 8GB RAM, 20GB disco y driver Docker.
+
+---
+
+## Helm
+
+**Versión:** v3.21.4  
+**Papel:** Gestor de paquetes de Kubernetes
+
+Helm es el gestor de paquetes estándar para Kubernetes. Simplifica la instalación y gestión de aplicaciones complejas mediante charts predefinidos.
+
+### En este playground
+
+Se utiliza para instalar Traefik y NGINX Ingress Controller. Es un prerequisito requerido por los scripts de setup.
 
 ---
 
 ## NGINX Ingress Controller
 
-**Versión:** v1.14.x  
-**Papel:** Controlador de Ingress (retirado oficialmente)
+**Versión:** v1.11.3  
+**Papel:** Controlador de Ingress
 
 NGINX Ingress Controller es el controlador de ingress más utilizado en producción. Implementa la API `Ingress` de Kubernetes usando NGINX como backend de proxy.
 
-### Estado actual
-
-⚠️ **Oficialmente retirado desde marzo 2026.** No recibe parches de seguridad ni correcciones de bugs. Minikube incluye un addon basado en esta versión.
-
 ### En este playground
 
-Se utiliza para comparar su comportamiento con Traefik. El addon de minikube lo instala en el namespace `ingress-nginx`.
+Se instala via `minikube addon enable ingress`. Se ejecuta en el namespace `ingress-nginx` con IngressClass `nginx` (predeterminado).
 
 ---
 
 ## Traefik
 
-**Versión:** v3.x  
+**Versión:** v3.7.11  
 **Papel:** Controlador de Ingress moderno
 
-Traefik es un reverse proxy y load balancer cloud-native diseñado para microservicios. Se integra nativamente con Kubernetes y autres orquestadores.
+Traefik es un reverse proxy y load balancer cloud-native diseñado para microservicios. Se integra nativamente con Kubernetes y otros orquestadores.
 
 ### Características principales
 
@@ -54,13 +63,13 @@ Traefik es un reverse proxy y load balancer cloud-native diseñado para microser
 
 ### En este playground
 
-Se instala como addon de minikube (alternativa recomendada al NGINX retirado). Registra su propio IngressClass como predeterminado.
+Se instala via Helm en el namespace `kube-system`. MetalLB le asigna una IP LoadBalancer. IngressClass `traefik`.
 
 ---
 
 ## Istio
 
-**Versión:** v1.30.x  
+**Versión:** v1.30.0  
 **Papel:** Service mesh
 
 Istio extiende Kubernetes para establecer una red programable y consciente de la aplicación. Proporciona gestión de tráfico, telemetría y seguridad a despliegues complejos.
@@ -71,13 +80,9 @@ Istio extiende Kubernetes para establecer una red programable y consciente de la
 - **ztunnel**: Proxy de capa 4 para el modo ambient (rendimiento y seguridad)
 - **Envoy**: Proxy de servicio de capa 7 (opcional, para features avanzadas)
 
-### Modo Ambient (GA)
-
-Istio introduce el modo ambient que elimina la necesidad de sidecars. Utiliza un túnel zero-trust para L4 y añade Envoy solo cuando se necesita L7.
-
 ### En este playground
 
-- Se instala en modo ambient (sin sidecar injection)
+- Se instala en modo minimal con istiod
 - Proporciona traffic splitting para Argo Rollouts
 - Ofrece observabilidad de tráfico entre microservicios
 - Gestiona mTLS transparente
@@ -142,7 +147,7 @@ Se configura para trabajar con Istio como proveedor de traffic splitting. Cada e
 │                                                      │
 │  ┌──────────────┐     ┌──────────────────────────┐  │
 │  │ NGINX/Traefik│◄────│       Istio               │  │
-│  │  Ingress     │     │  (ambient mode, ztunnel)  │  │
+│  │  Ingress     │     │  (istiod)                 │  │
 │  └──────┬───────┘     └────────────┬─────────────┘  │
 │         │                          │                  │
 │         ▼                          ▼                  │

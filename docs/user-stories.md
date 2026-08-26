@@ -318,7 +318,7 @@ graph TD
 |---|---|---|
 | US-20 | Crear control panel con URLs | ✅ |
 | US-21 | Actualizar kustomization.yaml | ✅ |
-| US-22 | Actualizar documentación final | ⬜ |
+| US-22 | Actualizar documentación final | ✅ |
 | US-23 | Integrar Helm como prerequisito en scripts | ✅ |
 
 ### US-20: Crear control panel con URLs ✅
@@ -356,7 +356,7 @@ graph TD
 - No hay errores de build
 - Se puede desplegar todo de una vez
 
-### US-22: Actualizar documentación final ⬜
+### US-22: Actualizar documentación final ✅
 
 **Como** usuario del playground,
 **quiero** que la documentación refleje el estado actual del proyecto,

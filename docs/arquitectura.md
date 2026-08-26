@@ -10,13 +10,12 @@ El playground simula un entorno de producción en miniatura con todas las capas 
 graph TB
     subgraph "Minikube Cluster"
         subgraph "Ingress Layer"
-            NGINX["NGINX Ingress<br/>:80/:443<br/>namespace: ingress-nginx"]
-            TRAEFIK["Traefik Ingress<br/>NodePort 30080/30443<br/>namespace: kube-system"]
+            NGINX["NGINX Ingress<br/>NodePort 30246/31594<br/>namespace: ingress-nginx"]
+            TRAEFIK["Traefik Ingress<br/>LoadBalancer 192.168.58.200<br/>namespace: kube-system"]
         end
 
         subgraph "Service Mesh - Istio"
             ISTIOD["istiod<br/>Control Plane<br/>namespace: istio-system"]
-            ZTUNNEL["ztunnel<br/>L4 Proxy - mTLS<br/>ambient mode"]
         end
 
         subgraph "Workloads - namespace: demo"
@@ -36,14 +35,13 @@ graph TB
     HOST["Host Machine"] -->|"minikube ip"| METALLB
     METALLB --> NGINX
     METALLB --> TRAEFIK
-    NGINX --> ZTUNNEL
-    TRAEFIK --> ZTUNNEL
-    ZTUNNEL --> FE
-    ZTUNNEL --> API
-    ZTUNNEL --> CACHE
-    ISTIOD --> ZTUNNEL
+    NGINX --> FE
+    NGINX --> API
+    TRAEFIK --> FE
+    TRAEFIK --> API
+    ISTIOD -->|"traffic split"| ROLLOUTS
     ARGOCD -->|"sync"| ROLLOUTS
-    ROLLOUTS -->|"traffic split"| ISTIOD
+    ROLLOUTS -->|"update weights"| ISTIOD
     API -->|"reads/writes"| CACHE
     FE -->|"proxies /api"| API
 ```
@@ -55,17 +53,13 @@ sequenceDiagram
     participant H as Host
     participant LB as MetalLB
     participant ING as Ingress Controller
-    participant IST as Istio ztunnel
     participant Svc as Service (frontend/api/cache)
 
     H->>LB: Request (minikube ip:port)
     LB->>ING: Forward to IngressClass
     ING->>ING: Match Ingress rules
-    ING->>IST: Route to service
-    IST->>IST: mTLS + metrics
-    IST->>Svc: Forward to pod
-    Svc-->>IST: Response
-    IST-->>ING: Response
+    ING->>Svc: Route to service
+    Svc-->>ING: Response
     ING-->>LB: Response
     LB-->>H: Response
 ```
@@ -106,6 +100,7 @@ sequenceDiagram
 | `argocd` | Argo CD server y components |
 | `argo-rollouts` | Argo Rollouts controller |
 | `demo` | Aplicaciones de ejemplo |
+| `metallb-system` | MetalLB controller |
 
 ## Recursos del clúster
 
@@ -121,8 +116,36 @@ Minikube (recomendado):
 
 | Puerto | Servicio | Acceso |
 |---|---|---|
-| 80 | NGINX Ingress HTTP | `minikube ip` |
-| 443 | NGINX Ingress HTTPS | `minikube ip` |
+| 30246 | NGINX Ingress HTTP | `minikube ip:30246` |
+| 31594 | NGINX Ingress HTTPS | `minikube ip:31594` |
+| 80 | Traefik HTTP | `192.168.58.200` (LB) |
+| 443 | Traefik HTTPS | `192.168.58.200` (LB) |
 | 30000-32767 | NodePort Services | `minikube ip:<port>` |
 | 8080 | Argo CD UI | `minikube service argocd-server -n argocd` |
 | 9000 | Traefik Dashboard | `minikube service traefik -n kube-system` |
+
+## Estrategias de despliegue
+
+| Estrategia | Rollout | Services | VirtualService |
+|---|---|---|---|
+| **Canary** | `api-rollout-canary` | api-stable, api-canary | api-canary-vsvc |
+| **Blue/Green** | `api-rollout-bluegreen` | api-active, api-preview | api-bluegreen-vsvc |
+| **A/B Testing** | `api-rollout-ab` | api-ab-stable, api-ab-canary | api-ab-vsvc |
+
+## Ingress rules
+
+### NGINX Ingress
+
+| Host | Servicio |
+|---|---|
+| `frontend.nginx.demo.local` | frontend:8080 |
+| `api.nginx.demo.local` | api:8081 |
+| `nginx.demo.local` | nginx-comparison:8080 |
+
+### Traefik Ingress
+
+| Host | Servicio |
+|---|---|
+| `frontend.traefik.demo.local` | frontend:8080 |
+| `api.traefik.demo.local` | api:8081 |
+| `traefik.demo.local` | nginx-comparison:8080 |
