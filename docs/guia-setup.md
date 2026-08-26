@@ -169,7 +169,7 @@ export PATH=$PWD/bin:$PATH
 ### Instalar Istio
 
 ```bash
-istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
+istioctl install --set profile=default --set meshConfig.enableAutoMtls=false -y
 ```
 
 ### Verificar

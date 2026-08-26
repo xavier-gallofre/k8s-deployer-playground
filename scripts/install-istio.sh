@@ -25,9 +25,9 @@ main() {
     # Instalar istioctl
     install_istioctl
 
-    # Instalar Istio con perfil minimal
-    log_info "Instalando Istio con perfil minimal..."
-    istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
+    # Instalar Istio con perfil default (incluye istiod + ingress gateway)
+    log_info "Instalando Istio con perfil default..."
+    istioctl install --set profile=default --set meshConfig.enableAutoMtls=false -y
 
     # Instalar sample de addons (Kiali, Prometheus, etc.)
     log_info "Instalando addons de Istio..."

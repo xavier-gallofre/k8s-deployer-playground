@@ -261,7 +261,7 @@ install_istio() {
         rm -rf istio-*
     fi
 
-    istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
+    istioctl install --set profile=default --set meshConfig.enableAutoMtls=false -y
 
     kubectl apply -f "https://raw.githubusercontent.com/istio/istio/${ISTIO_VERSION}/manifests/charts/ztunnel/files/ztunnel.yaml" 2>/dev/null || \
         kubectl apply -f "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/ztunnel.yaml" 2>/dev/null || \

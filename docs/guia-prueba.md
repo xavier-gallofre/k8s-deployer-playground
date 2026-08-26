@@ -106,9 +106,12 @@ kubectl get ipaddresspool -n metallb-system
 
 # Verificar que Traefik tiene External-IP
 kubectl get svc traefik -n kube-system
+
+# Verificar que Istio Ingress Gateway tiene External-IP
+kubectl get svc istio-ingressgateway -n istio-system
 ```
 
-El `EXTERNAL-IP` de Traefik debe estar en el rango `192.168.58.200-250`.
+El `EXTERNAL-IP` de Traefik e Istio Gateway debe estar en el rango `192.168.58.200-250`.
 
 ---
 
@@ -256,13 +259,21 @@ curl http://traefik.demo.local
 
 ## Fase 5: Probar Istio Gateway
 
-### Paso 5.1 — Port-forward al Istio Ingress Gateway
+### Paso 5.1 — Verificar Istio Ingress Gateway
+
+```bash
+kubectl get svc istio-ingressgateway -n istio-system
+```
+
+Debe mostrar un `EXTERNAL-IP` en el rango `192.168.58.200-250` (MetalLB).
+
+### Paso 5.2 — Port-forward al Istio Ingress Gateway
 
 ```bash
 kubectl port-forward -n istio-system svc/istio-ingressgateway 8080:80 &
 ```
 
-### Paso 5.2 — Probar Frontend
+### Paso 5.3 — Probar Frontend
 
 ```bash
 curl -H "Host: frontend.demo.local" http://localhost:8080
@@ -270,7 +281,7 @@ curl -H "Host: frontend.demo.local" http://localhost:8080
 
 **Resultado esperado:** Respuesta del frontend.
 
-### Paso 5.3 — Probar API
+### Paso 5.4 — Probar API
 
 ```bash
 curl -H "Host: api.demo.local" http://localhost:8080
@@ -278,7 +289,7 @@ curl -H "Host: api.demo.local" http://localhost:8080
 
 **Resultado esperado:** `API v1 - Hello from microservices demo`
 
-### Paso 5.4 — Detener port-forward
+### Paso 5.5 — Detener port-forward
 
 ```bash
 kill %1

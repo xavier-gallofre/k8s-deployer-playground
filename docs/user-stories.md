@@ -492,3 +492,17 @@ graph TD
 **Criterios de aceptación:**
 - `docs/estrategias-despliegue.md` usa nombres de servicios reales (api-ab-canary, etc.)
 - `docs/user-stories.md` US-00 acepta que `ingress/` no existe como directorio separado
+
+### US-31: Instalar Istio Ingress Gateway ✅
+
+**Como** usuario del playground,
+**quiero** que Istio enrute tráfico externo a través del `playground-gateway`,
+**para** probar el routing con VirtualServices y DestinationRules.
+
+**Criterios de aceptación:**
+- `istioctl install` usa `profile=default` en vez de `profile=minimal`
+- Servicio `istio-ingressgateway` existe en `istio-system` con LoadBalancer
+- `playground-gateway` recibe tráfico en el puerto 80
+- VirtualServices `frontend-vsvc` y `api-vsvc` son accesibles vía el gateway
+- `setup.sh`, `install-istio.sh` y `guia-setup.md` usan el mismo profile
+- `guia-prueba.md` incluye la verificación del Istio Gateway
