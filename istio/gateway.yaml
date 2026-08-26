@@ -22,7 +22,7 @@ metadata:
   namespace: demo
 spec:
   hosts:
-  - frontend
+  - frontend.demo.local
   gateways:
   - playground-gateway
   http:
@@ -39,7 +39,7 @@ metadata:
   namespace: demo
 spec:
   hosts:
-  - api
+  - api.demo.local
   gateways:
   - playground-gateway
   http:
