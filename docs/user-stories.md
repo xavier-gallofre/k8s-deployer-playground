@@ -443,3 +443,49 @@ graph TD
 - `setup.sh` instala addons de Istio (Kiali, Prometheus, Grafana)
 - `CONTROL-PANEL.md` incluye URLs de acceso a estos dashboards
 - Docs actualizadas con estos componentes
+
+---
+
+## Iteración 7: Fix & polish v2 ⬜
+
+| US | Descripción | Estado |
+|---|---|---|
+| US-28 | Fix inconsistencias en scripts y docs (placeholders, versiones, recursos) | ⬜ |
+| US-29 | Fix docs (Mermaid, summary, guía manual) | ⬜ |
+| US-30 | Reconciliar estrategias docs con manifests reales | ⬜ |
+
+### US-28: Fix inconsistencias en scripts y docs ⬜
+
+**Como** usuario del playground,
+**quiero** que no haya contradicciones entre scripts individuales y setup.sh,
+**para** que cualquier camino de instalación funcione igual.
+
+**Criterios de aceptación:**
+- `argocd/rollouts-app.yaml` usa mismo placeholder que `application.yaml`
+- `scripts/install-istio.sh` usa `$ISTIO_VERSION` en URLs de addons (no hardcodeado)
+- `docs/arquitectura.md` usa IPs dinámicas (no hardcodeadas)
+- Traefik resource requests consistentes entre `setup.sh` e `install-traefik.sh`
+- `install-istio.sh` tiene flags consistentes con `setup.sh` (enableAutoMtls, addons)
+
+### US-29: Fix docs (Mermaid, summary, guía manual) ⬜
+
+**Como** usuario del playground,
+**quiero** que la documentación refleje el estado real del proyecto,
+**para** seguir los pasos sin encontrarme sorpresas.
+
+**Criterios de aceptación:**
+- Mermaid diagram muestra Iteración 6 como completada
+- `setup.sh` muestra URLs de Kiali/Prometheus/Grafana en el summary
+- `docs/guia-setup.md` incluye sección de Kiali/Prometheus/Grafana
+- `docs/guia-setup.md` tiene `--profile` en todos los `minikube addons enable`
+- `docs/guia-setup.md` incluye pasos de limpieza manual
+
+### US-30: Reconciliar estrategias docs con manifests ⬜
+
+**Como** usuario del playground,
+**quiero** que los ejemplos en la documentación coincidan con los manifests reales,
+**para** poder copiar/pegar sin tener que corregir nombres.
+
+**Criterios de aceptación:**
+- `docs/estrategias-despliegue.md` usa nombres de servicios reales (api-ab-canary, etc.)
+- `docs/user-stories.md` US-00 acepta que `ingress/` no existe como directorio separado
