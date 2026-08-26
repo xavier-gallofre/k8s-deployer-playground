@@ -16,14 +16,16 @@ graph TD
     I2 --> I3["Iteración 3: Componentes ✅"]
     I3 --> I4["Iteración 4: Estrategias ✅"]
     I4 --> I5["Iteración 5: Control panel ✅"]
-    I5 --> I6["Iteración 6: Fix & polish ⬜"]
+    I5 --> I6["Iteración 6: Fix & polish ✅"]
+    I6 --> I7["Iteración 7: Fix & polish v2 ⬜"]
 
     style I1 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I2 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I3 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I4 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I5 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
-    style I6 fill:#e9c46a,stroke:#e9c46a,color:#000
+    style I6 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
+    style I7 fill:#e9c46a,stroke:#e9c46a,color:#000
 ```
 
 ---
@@ -386,7 +388,7 @@ graph TD
 
 ---
 
-## Iteración 6: Fix & polish ⬜
+## Iteración 6: Fix & polish ✅
 
 | US | Descripción | Estado |
 |---|---|---|
@@ -451,7 +453,7 @@ graph TD
 | US | Descripción | Estado |
 |---|---|---|
 | US-28 | Fix inconsistencias en scripts y docs (placeholders, versiones, recursos) | ✅ |
-| US-29 | Fix docs (Mermaid, summary, guía manual) | ⬜ |
+| US-29 | Fix docs (Mermaid, summary, guía manual) | ✅ |
 | US-30 | Reconciliar estrategias docs con manifests reales | ⬜ |
 
 ### US-28: Fix inconsistencias en scripts y docs ✅
@@ -467,7 +469,7 @@ graph TD
 - Traefik resource requests consistentes entre `setup.sh` e `install-traefik.sh`
 - `install-istio.sh` tiene flags consistentes con `setup.sh` (enableAutoMtls, addons)
 
-### US-29: Fix docs (Mermaid, summary, guía manual) ⬜
+### US-29: Fix docs (Mermaid, summary, guía manual) ✅
 
 **Como** usuario del playground,
 **quiero** que la documentación refleje el estado real del proyecto,

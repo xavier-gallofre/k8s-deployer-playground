@@ -126,7 +126,7 @@ EOF
 ## Paso 5: Instalar NGINX Ingress Controller
 
 ```bash
-minikube addons enable ingress
+minikube addons enable ingress --profile=k8s-playground
 ```
 
 Verificar:
@@ -326,4 +326,51 @@ istioctl analyze -n demo
 kubectl get applications -n argocd
 kubectl describe application <app-name> -n argocd
 argocd app list
+```
+
+## Paso 12: Observabilidad (Kiali, Prometheus, Grafana)
+
+Los addons de Istio se instalan automáticamente con `setup.sh`. Para instalación manual:
+
+```bash
+ISTIO_VERSION=1.30.0
+kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/prometheus.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/grafana.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/samples/addons/kiali.yaml"
+```
+
+### Acceder a los dashboards
+
+```bash
+# Kiali
+istioctl dashboard kiali
+
+# Prometheus
+kubectl port-forward -n istio-system svc/prometheus 9090:9090
+
+# Grafana
+kubectl port-forward -n istio-system svc/grafana 3000:3000
+```
+
+## Limpieza manual
+
+Si no quieres usar `scripts/teardown.sh`, puedes limpiar manualmente:
+
+```bash
+# Eliminar aplicaciones
+kubectl delete namespace demo --ignore-not-found
+
+# Eliminar Argo CD y Rollouts
+kubectl delete namespace argocd --ignore-not-found
+kubectl delete namespace argo-rollouts --ignore-not-found
+
+# Eliminar Istio
+istioctl uninstall --purge -y 2>/dev/null || true
+kubectl delete namespace istio-system --ignore-not-found
+
+# Eliminar Helm releases
+helm uninstall traefik -n kube-system 2>/dev/null || true
+
+# Eliminar Minikube
+minikube delete --profile=k8s-playground
 ```
