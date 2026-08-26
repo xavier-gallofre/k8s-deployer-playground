@@ -7,8 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-ARGO_CD_VERSION="v3.5.1"
-ARGO_ROLLOUTS_VERSION="v1.9.1"
+ARGO_CD_VERSION="${ARGO_CD_VERSION:-v3.5.1}"
+ARGO_ROLLOUTS_VERSION="${ARGO_ROLLOUTS_VERSION:-v1.9.1}"
 
 main() {
     install_argo_cd

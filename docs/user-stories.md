@@ -391,7 +391,7 @@ graph TD
 | US | Descripción | Estado |
 |---|---|---|
 | US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ✅ |
-| US-25 | Unificar scripts setup.sh + install-*.sh | ⬜ |
+| US-25 | Unificar scripts setup.sh + install-*.sh | ✅ |
 | US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ⬜ |
 | US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ⬜ |
 
@@ -407,7 +407,7 @@ graph TD
 - `README.md` referencia estructura de directorios correcta
 - Todas las docs muestran las mismas versiones
 
-### US-25: Unificar scripts setup.sh + install-*.sh ⬜
+### US-25: Unificar scripts setup.sh + install-*.sh ✅
 
 **Como** operador del playground,
 **quiero** que los scripts individuales reutilicen la misma lógica que setup.sh,

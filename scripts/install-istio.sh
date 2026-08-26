@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-ISTIO_VERSION="1.30.0"
+ISTIO_VERSION="${ISTIO_VERSION:-1.30.0}"
 
 main() {
     log_step "Instalando Istio $ISTIO_VERSION"

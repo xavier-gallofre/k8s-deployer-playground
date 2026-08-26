@@ -14,6 +14,15 @@ MINIKUBE_DISK_SIZE="${MINIKUBE_DISK_SIZE:-20g}"
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
 MINIKUBE_K8S_VERSION="${MINIKUBE_K8S_VERSION:-stable}"
 
+# Versiones de componentes (configurables via .env)
+ISTIO_VERSION="${ISTIO_VERSION:-1.30.0}"
+ARGO_CD_VERSION="${ARGO_CD_VERSION:-v3.5.1}"
+ARGO_ROLLOUTS_VERSION="${ARGO_ROLLOUTS_VERSION:-v1.9.1}"
+
+# MetalLB IP range (configurable via .env)
+METALLB_IP_START="${METALLB_IP_START:-.200}"
+METALLB_IP_END="${METALLB_IP_END:-.250}"
+
 # Cargar .env si existe
 if [ -f "${PROJECT_DIR}/.env" ]; then
     log_info "Cargando configuración desde .env"
@@ -170,8 +179,8 @@ EOF
     fi
 
     MINIKUBE_IP=$(minikube ip --profile="$PLAYGROUND_PROFILE")
-    FIRST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.200/')
-    LAST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.250/')
+    FIRST_IP=$(echo "$MINIKUBE_IP" | sed "s/\.[0-9]*$/${METALLB_IP_START}/")
+    LAST_IP=$(echo "$MINIKUBE_IP" | sed "s/\.[0-9]*$/${METALLB_IP_END}/")
 
     log_info "Configurando pool de IPs: ${FIRST_IP}-${LAST_IP}"
     cat <<EOF | kubectl apply -f -
@@ -247,15 +256,15 @@ install_istio() {
 
     if ! command -v istioctl &>/dev/null; then
         log_info "Descargando istioctl..."
-        curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.30.0 sh -
+        curl -L https://istio.io/downloadIstio | ISTIO_VERSION="$ISTIO_VERSION" sh -
         sudo cp istio-*/bin/istioctl /usr/local/bin/
         rm -rf istio-*
     fi
 
     istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
 
-    kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.30/manifests/charts/ztunnel/files/ztunnel.yaml 2>/dev/null || \
-        kubectl apply -f https://github.com/istio/istio/releases/download/1.30.0/ztunnel.yaml 2>/dev/null || \
+    kubectl apply -f "https://raw.githubusercontent.com/istio/istio/release-${ISTIO_VERSION}/manifests/charts/ztunnel/files/ztunnel.yaml" 2>/dev/null || \
+        kubectl apply -f "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/ztunnel.yaml" 2>/dev/null || \
         log_warn "Ztunnel ambient mode no disponible, usando modo clásico"
 
     log_success "Istio instalado"
@@ -270,7 +279,7 @@ install_argo() {
     fi
 
     kubectl create namespace argocd
-    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.1/manifests/install.yaml
+    kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGO_CD_VERSION}/manifests/install.yaml"
 
     wait_for_pods "argocd"
 
@@ -282,11 +291,11 @@ install_argo() {
     fi
 
     kubectl create namespace argo-rollouts
-    kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/manifests/install.yaml
+    kubectl apply -n argo-rollouts -f "https://raw.githubusercontent.com/argoproj/argo-rollouts/${ARGO_ROLLOUTS_VERSION}/manifests/install.yaml"
 
     wait_for_pods "argo-rollouts"
 
-    kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/manifests/installs/kubernetes-minimal.yaml 2>/dev/null || true
+    kubectl apply -n argo-rollouts -f "https://raw.githubusercontent.com/argoproj/argo-rollouts/${ARGO_ROLLOUTS_VERSION}/manifests/installs/kubernetes-minimal.yaml" 2>/dev/null || true
 
     log_success "Argo CD y Argo Rollouts instalados"
 }
