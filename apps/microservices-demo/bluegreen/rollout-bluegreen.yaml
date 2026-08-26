@@ -4,17 +4,17 @@ metadata:
   name: api-rollout-bluegreen
   namespace: demo
   labels:
-    app: api
+    app: api-bg
     strategy: bluegreen
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: api
+      app: api-bg
   template:
     metadata:
       labels:
-        app: api
+        app: api-bg
     spec:
       containers:
       - name: api
@@ -42,9 +42,15 @@ spec:
       prePromotionAnalysis:
         templates:
         - templateName: smoke-test
+        args:
+        - name: service-name
+          value: api-preview.demo.svc.cluster.local
       postPromotionAnalysis:
         templates:
         - templateName: success-rate
+        args:
+        - name: service-name
+          value: api-active.demo.svc.cluster.local
 ---
 apiVersion: v1
 kind: Service
@@ -53,7 +59,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-bg
   ports:
   - port: 8081
     targetPort: 8081
@@ -65,7 +71,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-bg
   ports:
   - port: 8081
     targetPort: 8081
@@ -84,7 +90,20 @@ spec:
     count: 3
     successCondition: result[0] == 200
     provider:
-      http:
-        url: "http://{{args.service-name}}:8081"
-        timeoutSeconds: 5
-        insecure: true
+      job:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: curl
+                image: curlimages/curl:latest
+                command:
+                - curl
+                - -s
+                - -o
+                - /dev/null
+                - -w
+                - "%{http_code}"
+                - "http://{{args.service-name}}:8081"
+              restartPolicy: Never
+          backoffLimit: 0

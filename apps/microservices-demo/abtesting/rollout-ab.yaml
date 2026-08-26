@@ -4,17 +4,17 @@ metadata:
   name: api-rollout-ab
   namespace: demo
   labels:
-    app: api
+    app: api-ab
     strategy: ab-testing
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: api
+      app: api-ab
   template:
     metadata:
       labels:
-        app: api
+        app: api-ab
     spec:
       containers:
       - name: api
@@ -65,7 +65,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-ab
   ports:
   - port: 8081
     targetPort: 8081
@@ -77,7 +77,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-ab
   ports:
   - port: 8081
     targetPort: 8081

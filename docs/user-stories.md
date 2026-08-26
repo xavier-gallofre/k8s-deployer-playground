@@ -271,11 +271,11 @@ graph TD
 
 | US | Descripción | Estado |
 |---|---|---|
-| US-17 | Desplegar estrategia Canary | ⬜ |
-| US-18 | Desplegar estrategia Blue/Green | ⬜ |
-| US-19 | Desplegar estrategia A/B Testing | ⬜ |
+| US-17 | Desplegar estrategia Canary | ✅ |
+| US-18 | Desplegar estrategia Blue/Green | ✅ |
+| US-19 | Desplegar estrategia A/B Testing | ✅ |
 
-### US-17: Desplegar estrategia Canary ⬜
+### US-17: Desplegar estrategia Canary ✅
 
 **Como** ingeniero que quiere practicar despliegues canary,
 **quiero** tener un Rollout configurado con estrategia Canary,
@@ -287,7 +287,7 @@ graph TD
 - VirtualService para canary configurado
 - `kubectl argo rollouts set image` funciona
 
-### US-18: Desplegar estrategia Blue/Green ⬜
+### US-18: Desplegar estrategia Blue/Green ✅
 
 **Como** ingeniero que quiere practicar despliegues blue/green,
 **quiero** tener un Rollout configurado con estrategia Blue/Green,
@@ -299,7 +299,7 @@ graph TD
 - AnalysisTemplate de smoke-test configurado
 - `kubectl argo rollouts promote` funciona
 
-### US-19: Desplegar estrategia A/B Testing ⬜
+### US-19: Desplegar estrategia A/B Testing ✅
 
 **Como** ingeniero que quiere practicar experimentos A/B,
 **quiero** tener un Rollout configurado con routing por headers,

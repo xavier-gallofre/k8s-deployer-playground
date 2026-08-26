@@ -7,16 +7,26 @@ spec:
   hosts:
   - api
   http:
-  - match:
+  - name: primary
+    route:
+    - destination:
+        host: api-ab-stable
+      weight: 100
+    - destination:
+        host: api-ab-canary
+      weight: 0
+  - name: canary-header
+    match:
     - headers:
         x-user-group:
           exact: beta
     route:
     - destination:
         host: api-ab-canary
-  - route:
+      weight: 100
     - destination:
         host: api-ab-stable
+      weight: 0
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
@@ -28,7 +38,7 @@ spec:
   subsets:
   - name: stable
     labels:
-      app: api
+      app: api-ab
   - name: canary
     labels:
-      app: api
+      app: api-ab

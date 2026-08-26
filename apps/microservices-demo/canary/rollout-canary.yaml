@@ -4,17 +4,17 @@ metadata:
   name: api-rollout-canary
   namespace: demo
   labels:
-    app: api
+    app: api-canary
     strategy: canary
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: api
+      app: api-canary
   template:
     metadata:
       labels:
-        app: api
+        app: api-canary
     spec:
       containers:
       - name: api
@@ -67,7 +67,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-canary
   ports:
   - port: 8081
     targetPort: 8081
@@ -79,7 +79,7 @@ metadata:
   namespace: demo
 spec:
   selector:
-    app: api
+    app: api-canary
   ports:
   - port: 8081
     targetPort: 8081
