@@ -13,16 +13,17 @@
 ```mermaid
 graph TD
     I1["Iteración 1: Fundación ✅"] --> I2["Iteración 2: Infraestructura ✅"]
-    I2 --> I3["Iteración 3: Componentes pendientes"]
-    I3 --> I4["Iteración 4: Estrategias de despliegue"]
-    I3 --> I5["Iteración 5: Control panel y pulido"]
-    I4 --> I5
+    I2 --> I3["Iteración 3: Componentes ✅"]
+    I3 --> I4["Iteración 4: Estrategias ✅"]
+    I4 --> I5["Iteración 5: Control panel ✅"]
+    I5 --> I6["Iteración 6: Fix & polish ⬜"]
 
     style I1 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I2 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
-    style I3 fill:#e9c46a,stroke:#e9c46a,color:#000
-    style I4 fill:#f4a261,stroke:#f4a261,color:#000
-    style I5 fill:#e76f51,stroke:#e76f51,color:#fff
+    style I3 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
+    style I4 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
+    style I5 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
+    style I6 fill:#e9c46a,stroke:#e9c46a,color:#000
 ```
 
 ---
@@ -208,7 +209,7 @@ graph TD
 
 ---
 
-## Iteración 3: Componentes pendientes ⬜
+## Iteración 3: Componentes ✅
 
 | US | Descripción | Estado |
 |---|---|---|
@@ -267,7 +268,7 @@ graph TD
 
 ---
 
-## Iteración 4: Estrategias de despliegue ⬜
+## Iteración 4: Estrategias de despliegue ✅
 
 | US | Descripción | Estado |
 |---|---|---|
@@ -312,7 +313,7 @@ graph TD
 
 ---
 
-## Iteración 5: Control panel y pulido ⬜
+## Iteración 5: Control panel y pulido ✅
 
 | US | Descripción | Estado |
 |---|---|---|
@@ -382,3 +383,63 @@ graph TD
 - `install-traefik.sh` e `install-ingress-nginx.sh` usan la función helper
 - `docs/guia-setup.md` lista Helm como prerequisito requerido con pasos de instalación
 - `.env.example` incluye `HELM_VERSION` como opción comentada
+
+---
+
+## Iteración 6: Fix & polish ⬜
+
+| US | Descripción | Estado |
+|---|---|---|
+| US-24 | Fix Argo CD placeholder + sincronizar versiones en docs | ⬜ |
+| US-25 | Unificar scripts setup.sh + install-*.sh | ⬜ |
+| US-26 | Fix docs menores (iteraciones, guía, control panel, teardown) | ⬜ |
+| US-27 | Instalar Kiali/Prometheus/Grafana en setup.sh | ⬜ |
+
+### US-24: Fix Argo CD placeholder + sincronizar versiones en docs ⬜
+
+**Como** usuario del playground,
+**quiero** que los repositorios de Argo CD apunten a URLs reales y las versiones estén sincronizadas entre docs,
+**para** que Argo CD pueda sincronizar correctamente y la documentación sea fiable.
+
+**Criterios de aceptación:**
+- `argocd/application.yaml` usa URL placeholder configurable (no `your-org`)
+- `README.md` muestra versiones reales (no v1.38.1 para Minikube)
+- `README.md` referencia estructura de directorios correcta
+- Todas las docs muestran las mismas versiones
+
+### US-25: Unificar scripts setup.sh + install-*.sh ⬜
+
+**Como** operador del playground,
+**quiero** que los scripts individuales reutilicen la misma lógica que setup.sh,
+**para** mantener una sola fuente de verdad y evitar inconsistencias.
+
+**Criterios de aceptación:**
+- `setup.sh` consume variables `.env` para versiones (ISTIO_VERSION, ARGO_CD_VERSION, etc.)
+- Scripts individuales usan `install_helm()` y funciones de helpers.sh
+- Configuración de recursos (CPU/memory) coherente entre scripts
+- MetalLB IP range configurable via `.env`
+
+### US-26: Fix docs menores ⬜
+
+**Como** usuario del playground,
+**quiero** que la guía manual, el control panel y el teardown sean consistentes con setup.sh,
+**para** seguir cualquier camino sin contradicciones.
+
+**Criterios de aceptación:**
+- `docs/guia-setup.md` usa `--profile` en minikube start
+- `docs/guia-setup.md` usa MetalLB via addon (no manifest v0.14.9)
+- `docs/guia-setup.md` incluye flags de Istio consistentes con setup.sh
+- `CONTROL-PANEL.md` usa `$(minikube ip)` en vez de IPs hardcodeadas
+- `CONTROL-PANEL.md` incluye NGINX en tabla de acceso rápido
+- `scripts/teardown.sh` limpia Helm releases de Traefik/NGINX
+
+### US-27: Instalar Kiali/Prometheus/Grafana en setup.sh ⬜
+
+**Como** usuario del playground,
+**quiero** tener Kiali, Prometheus y Grafana instalados automáticamente,
+**para** acceder a dashboards de observabilidad sin configuración manual.
+
+**Criterios de aceptación:**
+- `setup.sh` instala addons de Istio (Kiali, Prometheus, Grafana)
+- `CONTROL-PANEL.md` incluye URLs de acceso a estos dashboards
+- Docs actualizadas con estos componentes
