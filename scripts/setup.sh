@@ -65,16 +65,16 @@ check_prerequisites() {
 
     if ! check_command "argocd" 2>/dev/null; then
         log_info "Instalando CLI de Argo CD..."
-        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-        sudo install -m 555 argocd /usr/local/bin/argocd
-        rm argocd
+        curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        sudo install -m 555 /tmp/argocd /usr/local/bin/argocd
+        rm /tmp/argocd
     fi
 
     if ! check_command "kubectl-argo-rollouts" 2>/dev/null; then
         log_info "Instalando plugin de Argo Rollouts..."
-        curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
-        sudo install -m 555 kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
-        rm kubectl-argo-rollouts-linux-amd64
+        curl -sSL -o /tmp/kubectl-argo-rollouts https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+        sudo install -m 555 /tmp/kubectl-argo-rollouts /usr/local/bin/kubectl-argo-rollouts
+        rm /tmp/kubectl-argo-rollouts
     fi
 }
 
@@ -118,18 +118,60 @@ start_minikube() {
 install_metallb() {
     log_step "Instalando MetalLB (LoadBalancer para Minikube)"
 
-    if kubectl get ns metallb-system &>/dev/null; then
-        log_warn "MetalLB ya instalado"
+    # Verificar si ya está configurado
+    if kubectl get ipaddresspool -n metallb-system &>/dev/null 2>&1; then
+        log_warn "MetalLB ya configurado"
         return
     fi
 
-    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
-    wait_for_pods "metallb-system"
+    # Usar el addon nativo de Minikube (maneja webhooks correctamente)
+    if ! minikube addons list --profile="$PLAYGROUND_PROFILE" 2>/dev/null | grep metallb | grep -q enabled; then
+        log_info "Habilitando addon metallb de Minikube..."
+        minikube addons enable metallb --profile="$PLAYGROUND_PROFILE" || true
+    fi
+
+    # Esperar a que el controller esté realmente listo
+    log_info "Esperando controller de MetalLB..."
+    kubectl wait --namespace metallb-system \
+        --for=condition=ready pod \
+        --selector=app=metallb,component=controller \
+        --timeout=120s 2>/dev/null || true
+
+    # Esperar a que los webhooks respondan (test real)
+    log_info "Esperando webhook de MetalLB..."
+    local retries=0
+    local max_retries=40
+    while [ $retries -lt $max_retries ]; do
+        if cat <<EOF | kubectl apply -f - 2>/dev/null; then
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: _test_pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.0.2.0/24
+EOF
+            kubectl delete ipaddresspool _test_pool -n metallb-system --ignore-not-found 2>/dev/null
+            log_success "Webhook de MetalLB listo"
+            break
+        fi
+        retries=$((retries + 1))
+        log_info "Webhook no listo, reintento ${retries}/${max_retries}..."
+        sleep 5
+    done
+
+    if [ $retries -eq $max_retries ]; then
+        log_error "Webhook de MetalLB no estuvo listo tras ${max_retries} intentos"
+        log_info "Puedes configurar MetalLB manualmente más adelante"
+        return 0
+    fi
 
     MINIKUBE_IP=$(minikube ip --profile="$PLAYGROUND_PROFILE")
     FIRST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.200/')
     LAST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.250/')
 
+    log_info "Configurando pool de IPs: ${FIRST_IP}-${LAST_IP}"
     cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool

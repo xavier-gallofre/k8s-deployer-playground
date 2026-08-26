@@ -105,6 +105,26 @@ wait_for_deployment() {
     kubectl rollout status deployment/"$deployment" -n "$namespace" --timeout="${timeout}s" 2>/dev/null || true
 }
 
+wait_for_webhook() {
+    local namespace=$1
+    local resource=$2
+    local timeout=${3:-150}
+    local interval=5
+    local elapsed=0
+
+    log_info "Esperando webhook para $resource en $namespace (timeout: ${timeout}s)..."
+    while [ $elapsed -lt $timeout ]; do
+        if kubectl get "$resource" -n "$namespace" &>/dev/null; then
+            log_success "Webhook listo para $resource"
+            return 0
+        fi
+        elapsed=$((elapsed + interval))
+        sleep $interval
+    done
+    log_warn "Timeout esperando webhook para $resource"
+    return 1
+}
+
 # =============================================================================
 # Generación de inventario
 # =============================================================================
