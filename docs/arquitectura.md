@@ -6,68 +6,94 @@ El playground simula un entorno de producción en miniatura con todas las capas 
 
 ## Diagrama de componentes
 
-```
-                        Internet / Host
-                              │
-                              ▼
-                    ┌─────────────────┐
-                    │   LoadBalancer   │
-                    │   (metallb)      │
-                    └────────┬────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              │              │              │
-              ▼              ▼              ▼
-    ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-    │ NGINX        │ │ Traefik      │ │ Istio        │
-    │ Ingress      │ │ Ingress      │ │ Gateway      │
-    │ :80/:443     │ │ :8080/:8443  │ │ :15000-15021 │
-    └──────┬───────┘ └──────┬───────┘ └──────┬───────┘
-           │                │                │
-           └────────────────┼────────────────┘
-                            │
-                            ▼
-              ┌─────────────────────────┐
-              │     Service Mesh        │
-              │     (Istio ztunnel)     │
-              │   mTLS + Traffic Mgmt   │
-              └───────────┬─────────────┘
-                          │
-          ┌───────────────┼───────────────┐
-          │               │               │
-          ▼               ▼               ▼
-  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-  │  frontend    │ │  api         │ │  cache       │
-  │  Service     │ │  Service     │ │  Service     │
-  │  :8080       │ │  :8081       │ │  :6379       │
-  └──────────────┘ └──────────────┘ └──────────────┘
+```mermaid
+graph TB
+    subgraph "Minikube Cluster"
+        subgraph "Ingress Layer"
+            NGINX["NGINX Ingress<br/>:80/:443<br/>namespace: ingress-nginx"]
+            TRAEFIK["Traefik Ingress<br/>NodePort 30080/30443<br/>namespace: kube-system"]
+        end
 
-          ┌─────────────────────────────────┐
-          │         Control Plane           │
-          │                                 │
-          │  ┌───────────┐  ┌───────────┐  │
-          │  │ Argo CD   │  │ Argo      │  │
-          │  │ :8080     │  │ Rollouts  │  │
-          │  └───────────┘  └───────────┘  │
-          └─────────────────────────────────┘
+        subgraph "Service Mesh - Istio"
+            ISTIOD["istiod<br/>Control Plane<br/>namespace: istio-system"]
+            ZTUNNEL["ztunnel<br/>L4 Proxy - mTLS<br/>ambient mode"]
+        end
+
+        subgraph "Workloads - namespace: demo"
+            FE["frontend<br/>:8080"]
+            API["api<br/>:8081"]
+            CACHE["cache<br/>:6379"]
+        end
+
+        subgraph "GitOps & Rollouts"
+            ARGOCD["Argo CD<br/>:8080<br/>namespace: argocd"]
+            ROLLOUTS["Argo Rollouts<br/>Controller<br/>namespace: argo-rollouts"]
+        end
+
+        METALLB["MetalLB<br/>LoadBalancer<br/>namespace: metallb-system"]
+    end
+
+    HOST["Host Machine"] -->|"minikube ip"| METALLB
+    METALLB --> NGINX
+    METALLB --> TRAEFIK
+    NGINX --> ZTUNNEL
+    TRAEFIK --> ZTUNNEL
+    ZTUNNEL --> FE
+    ZTUNNEL --> API
+    ZTUNNEL --> CACHE
+    ISTIOD --> ZTUNNEL
+    ARGOCD -->|"sync"| ROLLOUTS
+    ROLLOUTS -->|"traffic split"| ISTIOD
+    API -->|"reads/writes"| CACHE
+    FE -->|"proxies /api"| API
 ```
 
-## Flujo de tráfico
+### Flujo de tráfico
 
-### Request externo → Aplicación
+```mermaid
+sequenceDiagram
+    participant H as Host
+    participant LB as MetalLB
+    participant ING as Ingress Controller
+    participant IST as Istio ztunnel
+    participant Svc as Service (frontend/api/cache)
 
-1. El tráfico llega al LoadBalancer (metallb IP)
-2. El Ingress Controller correspondiente (NGINX o Traefik) procesa las reglas de routing
-3. Istio ztunnel gestiona mTLS y métricas en capa 4
-4. El servicio destino recibe el request
+    H->>LB: Request (minikube ip:port)
+    LB->>ING: Forward to IngressClass
+    ING->>ING: Match Ingress rules
+    ING->>IST: Route to service
+    IST->>IST: mTLS + metrics
+    IST->>Svc: Forward to pod
+    Svc-->>IST: Response
+    IST-->>ING: Response
+    ING-->>LB: Response
+    LB-->>H: Response
+```
 
-### Despliegue progresivo
+### Flujo de despliegue progresivo (Canary)
 
-1. Argo CD detecta cambio en el repo Git
-2. Sincroniza el manifest del Rollout
-3. Argo Rollouts orquesta el despliegue gradual
-4. Istio/Gateway gestiona el split de tráfico
-5. Análisis de métricas determina promoción o rollback
+```mermaid
+sequenceDiagram
+    participant G as Git Repo
+    participant ACD as Argo CD
+    participant AR as Argo Rollouts
+    participant IST as Istio
+    participant P as Pods (v1/v2)
+
+    G->>ACD: Push new manifest
+    ACD->>AR: Sync Rollout resource
+    AR->>AR: Set weight 10% canary
+    AR->>IST: Update VirtualService
+    IST->>P: 10% → v2, 90% → v1
+    AR->>AR: Pause + check metrics
+    AR->>AR: Set weight 25%
+    AR->>IST: Update VirtualService
+    IST->>P: 25% → v2, 75% → v1
+    AR->>AR: Pause + check metrics
+    AR->>AR: Set weight 100%
+    AR->>IST: Update VirtualService
+    IST->>P: 100% → v2
+```
 
 ## Namespaces
 
