@@ -7,23 +7,37 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-CLUSTER_NAME="k8s-playground"
-MINIKUBE_CPUS="4"
-MINIKUBE_MEMORY="8192"
-MINIKUBE_DISK_SIZE="20g"
+# Configuración por defecto (sobreescribir via .env o variables de entorno)
+MINIKUBE_CPUS="${MINIKUBE_CPUS:-4}"
+MINIKUBE_MEMORY="${MINIKUBE_MEMORY:-8192}"
+MINIKUBE_DISK_SIZE="${MINIKUBE_DISK_SIZE:-20g}"
+MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
+MINIKUBE_K8S_VERSION="${MINIKUBE_K8S_VERSION:-stable}"
+
+# Cargar .env si existe
+if [ -f "${PROJECT_DIR}/.env" ]; then
+    log_info "Cargando configuración desde .env"
+    set -a
+    source "${PROJECT_DIR}/.env"
+    set +a
+fi
 
 main() {
     log_step "K8s Deployer Playground - Setup Completo"
+    log_info "Profile: ${PLAYGROUND_PROFILE}"
     log_info "Este script instalará todas las dependencias del playground"
     echo ""
 
+    init_logging
     check_prerequisites
+    check_existing_profile
     start_minikube
     install_metallb
     install_ingress_nginx
     install_traefik
     install_istio
     install_argo
+    generate_inventory
     show_summary
 }
 
@@ -64,21 +78,38 @@ check_prerequisites() {
     fi
 }
 
+check_existing_profile() {
+    log_step "Verificando profile de Minikube"
+
+    if check_profile_in_use "$PLAYGROUND_PROFILE"; then
+        log_warn "El profile '${PLAYGROUND_PROFILE}' ya está ejecutándose."
+        log_info "¿Quieres usar este clúster existente? Se omitirá la creación."
+        read -p "Continuar con el clúster existente? (s/N): " confirm
+        if [[ "$confirm" =~ ^[sS]$ ]]; then
+            return
+        else
+            log_info "Cancelled. Usa otro PLAYGROUND_PROFILE o ejecuta teardown primero."
+            exit 0
+        fi
+    fi
+}
+
 start_minikube() {
     log_step "Iniciando Minikube"
 
-    if minikube status --profile="$CLUSTER_NAME" 2>/dev/null | grep -q "Running"; then
+    if minikube status --profile="$PLAYGROUND_PROFILE" 2>/dev/null | grep -q "Running"; then
         log_warn "Minikube ya está ejecutándose"
         return
     fi
 
+    log_info "Iniciando con driver=${MINIKUBE_DRIVER}, CPUs=${MINIKUBE_CPUS}, RAM=${MINIKUBE_MEMORY}MB"
     minikube start \
-        --profile="$CLUSTER_NAME" \
-        --driver=docker \
+        --profile="$PLAYGROUND_PROFILE" \
+        --driver="$MINIKUBE_DRIVER" \
         --cpus="$MINIKUBE_CPUS" \
         --memory="$MINIKUBE_MEMORY" \
         --disk-size="$MINIKUBE_DISK_SIZE" \
-        --kubernetes-version=stable
+        --kubernetes-version="$MINIKUBE_K8S_VERSION"
 
     log_success "Minikube iniciado correctamente"
     kubectl cluster-info
@@ -95,8 +126,7 @@ install_metallb() {
     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
     wait_for_pods "metallb-system"
 
-    # Configurar pool de IPs
-    MINIKUBE_IP=$(minikube ip --profile="$CLUSTER_NAME")
+    MINIKUBE_IP=$(minikube ip --profile="$PLAYGROUND_PROFILE")
     FIRST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.200/')
     LAST_IP=$(echo "$MINIKUBE_IP" | sed 's/\.[0-9]*$/.250/')
 
@@ -131,7 +161,7 @@ install_ingress_nginx() {
         return
     fi
 
-    minikube addons enable ingress --profile="$CLUSTER_NAME" || true
+    minikube addons enable ingress --profile="$PLAYGROUND_PROFILE" || true
 
     kubectl wait --namespace ingress-nginx \
         --for=condition=ready pod \
@@ -149,7 +179,7 @@ install_traefik() {
         return
     fi
 
-    minikube addons enable traefik --profile="$CLUSTER_NAME" || true
+    minikube addons enable traefik --profile="$PLAYGROUND_PROFILE" || true
 
     wait_for_deployment "kube-system" "traefik"
 
@@ -164,7 +194,6 @@ install_istio() {
         return
     fi
 
-    # Descargar istioctl si no existe
     if ! command -v istioctl &>/dev/null; then
         log_info "Descargando istioctl..."
         curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.30.0 sh -
@@ -174,7 +203,6 @@ install_istio() {
 
     istioctl install --set profile=minimal --set meshConfig.enableAutoMtls=false -y
 
-    # Instalar ztunnel para ambient mode
     kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.30/manifests/charts/ztunnel/files/ztunnel.yaml 2>/dev/null || \
         kubectl apply -f https://github.com/istio/istio/releases/download/1.30.0/ztunnel.yaml 2>/dev/null || \
         log_warn "Ztunnel ambient mode no disponible, usando modo clásico"
@@ -195,7 +223,6 @@ install_argo() {
 
     wait_for_pods "argocd"
 
-    # Instalar Argo Rollouts
     log_step "Instalando Argo Rollouts"
 
     if kubectl get ns argo-rollouts &>/dev/null; then
@@ -208,7 +235,6 @@ install_argo() {
 
     wait_for_pods "argo-rollouts"
 
-    # Configurar Rollout controller para trabajar con Istio
     kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/manifests/installs/kubernetes-minimal.yaml 2>/dev/null || true
 
     log_success "Argo CD y Argo Rollouts instalados"
@@ -219,14 +245,20 @@ show_summary() {
 
     echo -e "${GREEN}Resumen del entorno:${NC}"
     echo ""
-    minikube status --profile="$CLUSTER_NAME"
+    minikube status --profile="$PLAYGROUND_PROFILE"
     echo ""
     echo -e "${CYAN}URLs de acceso:${NC}"
-    echo "  Argo CD UI:      $(minikube service argocd-server -n argocd --url --profile="$CLUSTER_NAME" 2>/dev/null || echo 'ejecutar: minikube service argocd-server -n argocd')"
-    echo "  Traefik Dashboard: $(minikube service traefik -n kube-system --url --profile="$CLUSTER_NAME" 2>/dev/null || echo 'ejecutar: minikube service traefik -n kube-system')"
+    echo "  Argo CD UI:      $(minikube service argocd-server -n argocd --url --profile="$PLAYGROUND_PROFILE" 2>/dev/null || echo 'ejecutar: minikube service argocd-server -n argocd')"
+    echo "  Traefik Dashboard: $(minikube service traefik -n kube-system --url --profile="$PLAYGROUND_PROFILE" 2>/dev/null || echo 'ejecutar: minikube service traefik -n kube-system')"
+    echo ""
+    echo -e "${CYAN}Inventario:${NC}"
+    echo "  ${INVENTORY_FILE}"
+    echo ""
+    echo -e "${CYAN}Log completo:${NC}"
+    echo "  ${LOG_FILE}"
     echo ""
     echo -e "${CYAN}Siguiente paso:${NC}"
-    echo "  Desplegar aplicaciones de ejemplo: kubectl apply -f $PROJECT_DIR/apps/"
+    echo "  Desplegar aplicaciones: kubectl apply -k ${PROJECT_DIR}"
     echo ""
 }
 

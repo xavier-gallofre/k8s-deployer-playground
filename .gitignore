@@ -1,0 +1,36 @@
+# =============================================================================
+# K8s Deployer Playground - Gitignore
+# =============================================================================
+
+# Logs generados durante ejecución
+logs/
+
+# Archivo de configuración local (no commitear secretos)
+.env
+.env.local
+.env.*.local
+
+# Archivos temporales de editores
+*.tmp
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Minikube - archivos locales del clúster
+.minikube/
+
+# Binarios descargados durante setup
+argocd
+kubectl-argo-rollouts*
+istio-*/
+minikube-linux-amd64
+
+# Helm
+chartsvc/
+charts/
+
+# Kubernetes - archivos de contexto
+kubeconfig
+*.kubeconfig

@@ -7,13 +7,22 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-CLUSTER_NAME="k8s-playground"
+# Cargar .env si existe
+if [ -f "${PROJECT_DIR}/.env" ]; then
+    log_info "Cargando configuración desde .env"
+    set -a
+    source "${PROJECT_DIR}/.env"
+    set +a
+fi
 
 main() {
     log_step "K8s Deployer Playground - Teardown"
+    log_info "Profile: ${PLAYGROUND_PROFILE}"
     echo ""
-    log_warn "Este script eliminará completamente el clúster Minikube y todos sus recursos."
+    log_warn "Este script eliminará completamente el clúster Minikube '${PLAYGROUND_PROFILE}' y todos sus recursos."
     echo ""
+
+    init_logging
 
     read -p "¿Estás seguro? (s/N): " confirm
     if [[ ! "$confirm" =~ ^[sS]$ ]]; then
@@ -57,14 +66,13 @@ delete_istio() {
 delete_minikube() {
     log_step "Deteniendo y eliminando Minikube"
 
-    minikube delete --profile="$CLUSTER_NAME" --all --purge 2>/dev/null || true
-    log_success "Minikube eliminado"
+    minikube delete --profile="$PLAYGROUND_PROFILE" 2>/dev/null || true
+    log_success "Minikube '${PLAYGROUND_PROFILE}' eliminado"
 }
 
 cleanup_local_files() {
     log_step "Limpiando archivos temporales locales"
 
-    # Limpiar binarios descargados si existen
     rm -f /tmp/argocd 2>/dev/null || true
     rm -f /tmp/kubectl-argo-rollouts* 2>/dev/null || true
     rm -rf "${HOME}/.cache/istio" 2>/dev/null || true
@@ -75,10 +83,13 @@ cleanup_local_files() {
 show_summary() {
     log_step "Teardown completado"
 
-    echo -e "${GREEN}El playground ha sido eliminado completamente.${NC}"
+    echo -e "${GREEN}El playground '${PLAYGROUND_PROFILE}' ha sido eliminado completamente.${NC}"
+    echo ""
+    echo -e "${CYAN}Log del teardown:${NC}"
+    echo "  ${LOG_FILE}"
     echo ""
     echo -e "${CYAN}Para reinstalar:${NC}"
-    echo "  ./scripts/setup.sh"
+    echo "  PLAYGROUND_PROFILE=${PLAYGROUND_PROFILE} ./scripts/setup.sh"
     echo ""
 }
 
