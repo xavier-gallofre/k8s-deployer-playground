@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-comparison-v1
+  name: nginx-comparison-v2
   namespace: demo
   labels:
     app: nginx-comparison
-    version: v1
+    version: v2
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: nginx-comparison
-      version: v1
+      version: v2
   template:
     metadata:
       labels:
         app: nginx-comparison
-        version: v1
+        version: v2
     spec:
       containers:
       - name: app
         image: hashicorp/http-echo:0.2.3
         args:
         - "-listen=:8080"
-        - "-text=App v1 - NGINX vs Traefik comparison"
+        - "-text=App v2 - NGINX vs Traefik comparison"
         ports:
         - containerPort: 8080
         resources:
