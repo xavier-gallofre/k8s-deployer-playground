@@ -213,7 +213,7 @@ graph TD
 | US | Descripción | Estado |
 |---|---|---|
 | US-13 | Instalar Argo Rollouts controller | ✅ |
-| US-14 | Instalar Traefik addon | ⬜ |
+| US-14 | Instalar Traefik addon | ✅ |
 | US-15 | Configurar Ingress resources | ⬜ |
 | US-16 | Configurar Istio Gateway + routing | ⬜ |
 
@@ -229,7 +229,7 @@ graph TD
 - `kubectl argo rollouts version` conecta contra el clúster
 - Integra con Istio para traffic splitting
 
-### US-14: Instalar Traefik addon ⬜
+### US-14: Instalar Traefik addon ✅
 
 **Como** ingeniero que quiere comparar Ingress controllers,
 **quiero** tener Traefik corriendo,
