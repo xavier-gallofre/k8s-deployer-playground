@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-bluegreen-vsvc
+  namespace: demo
+spec:
+  hosts:
+  - api
+  http:
+  - route:
+    - destination:
+        host: api-active
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-bluegreen-dr
+  namespace: demo
+spec:
+  host: api
+  subsets:
+  - name: active
+    labels:
+      app: api
+  - name: preview
+    labels:
+      app: api

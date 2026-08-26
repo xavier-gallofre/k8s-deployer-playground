@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-comparison
+  namespace: demo
+  labels:
+    app: nginx-comparison
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-comparison
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: nginx-comparison
+        version: v1
+    spec:
+      containers:
+      - name: app
+        image: hashicorp/http-echo:0.2.3
+        args:
+        - "-listen=:8080"
+        - "-text=App v1 - NGINX vs Traefik comparison"
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-comparison
+  namespace: demo
+  labels:
+    app: nginx-comparison
+    version: v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-comparison
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: nginx-comparison
+        version: v2
+    spec:
+      containers:
+      - name: app
+        image: hashicorp/http-echo:0.2.3
+        args:
+        - "-listen=:8080"
+        - "-text=App v2 - NGINX vs Traefik comparison"
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-comparison
+  namespace: demo
+spec:
+  selector:
+    app: nginx-comparison
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP

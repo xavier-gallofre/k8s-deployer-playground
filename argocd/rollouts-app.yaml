@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rollouts-canary
+  namespace: argocd
+spec:
+  project: playground
+  source:
+    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    targetRevision: HEAD
+    path: apps/microservices-demo/canary
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rollouts-bluegreen
+  namespace: argocd
+spec:
+  project: playground
+  source:
+    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    targetRevision: HEAD
+    path: apps/microservices-demo/bluegreen
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rollouts-ab
+  namespace: argocd
+spec:
+  project: playground
+  source:
+    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    targetRevision: HEAD
+    path: apps/microservices-demo/abtesting
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

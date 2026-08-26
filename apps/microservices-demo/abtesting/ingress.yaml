@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-ab-vsvc
+  namespace: demo
+spec:
+  hosts:
+  - api
+  http:
+  - match:
+    - headers:
+        x-user-group:
+          exact: beta
+    route:
+    - destination:
+        host: api-ab-canary
+  - route:
+    - destination:
+        host: api-ab-stable
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-ab-dr
+  namespace: demo
+spec:
+  host: api
+  subsets:
+  - name: stable
+    labels:
+      app: api
+  - name: canary
+    labels:
+      app: api

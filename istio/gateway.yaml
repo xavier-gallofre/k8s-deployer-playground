@@ -1,0 +1,82 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: playground-gateway
+  namespace: demo
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.demo.local"
+    - "*.default.svc.cluster.local"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend-vsvc
+  namespace: demo
+spec:
+  hosts:
+  - frontend
+  gateways:
+  - playground-gateway
+  http:
+  - route:
+    - destination:
+        host: frontend
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-vsvc
+  namespace: demo
+spec:
+  hosts:
+  - api
+  gateways:
+  - playground-gateway
+  http:
+  - route:
+    - destination:
+        host: api
+        port:
+          number: 8081
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: frontend-dr
+  namespace: demo
+spec:
+  host: frontend
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        h2UpgradePolicy: DEFAULT
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-dr
+  namespace: demo
+spec:
+  host: api
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        h2UpgradePolicy: DEFAULT
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000

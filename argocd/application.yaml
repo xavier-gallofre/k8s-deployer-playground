@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: playground
+  namespace: argocd
+spec:
+  description: K8s Deployer Playground Project
+  sourceRepos:
+  - '*'
+  destinations:
+  - namespace: demo
+    server: https://kubernetes.default.svc
+  - namespace: argo-rollouts
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices-demo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: playground
+  source:
+    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    targetRevision: HEAD
+    path: apps/microservices-demo/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-comparison
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: playground
+  source:
+    repoURL: https://github.com/your-org/k8s-deployer-playground.git
+    targetRevision: HEAD
+    path: apps/nginx-comparison
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
