@@ -316,12 +316,12 @@ graph TD
 
 | US | Descripción | Estado |
 |---|---|---|
-| US-20 | Crear control panel con URLs | ⬜ |
+| US-20 | Crear control panel con URLs | ✅ |
 | US-21 | Actualizar kustomization.yaml | ⬜ |
 | US-22 | Actualizar documentación final | ⬜ |
 | US-23 | Integrar Helm como prerequisito en scripts | ✅ |
 
-### US-20: Crear control panel con URLs ⬜
+### US-20: Crear control panel con URLs ✅
 
 **Como** operador del playground,
 **quiero** tener un panel de control centralizado con URLs de acceso a todas las UIs,
