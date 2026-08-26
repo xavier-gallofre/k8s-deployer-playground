@@ -215,7 +215,7 @@ graph TD
 | US-13 | Instalar Argo Rollouts controller | ✅ |
 | US-14 | Instalar Traefik addon | ✅ |
 | US-15 | Configurar Ingress resources | ✅ |
-| US-16 | Configurar Istio Gateway + routing | ⬜ |
+| US-16 | Configurar Istio Gateway + routing | ✅ |
 
 ### US-13: Instalar Argo Rollouts controller ✅
 
@@ -253,7 +253,7 @@ graph TD
 - `/` sirve frontend, `/api` sirve API
 - Entradas a `/etc/hosts` documentadas
 
-### US-16: Configurar Istio Gateway + routing ⬜
+### US-16: Configurar Istio Gateway + routing ✅
 
 **Como** ingeniero que quiere probar el service mesh,
 **quiero** que el Gateway de Istio esté instalado y enrutando tráfico,
