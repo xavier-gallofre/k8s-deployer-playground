@@ -18,6 +18,7 @@ MINIKUBE_K8S_VERSION="${MINIKUBE_K8S_VERSION:-stable}"
 ISTIO_VERSION="${ISTIO_VERSION:-1.30.0}"
 ARGO_CD_VERSION="${ARGO_CD_VERSION:-v3.5.1}"
 ARGO_ROLLOUTS_VERSION="${ARGO_ROLLOUTS_VERSION:-v1.9.1}"
+METALLB_VERSION="${METALLB_VERSION:-0.13.12}"
 
 # MetalLB IP range (configurable via .env)
 METALLB_IP_START="${METALLB_IP_START:-.200}"
@@ -129,51 +130,50 @@ start_minikube() {
 install_metallb() {
     log_step "Instalando MetalLB (LoadBalancer para Minikube)"
 
-    # Verificar si ya está configurado
-    if kubectl get ipaddresspool -n metallb-system &>/dev/null 2>&1; then
-        log_warn "MetalLB ya configurado"
-        return
+    # El addon nativo de Minikube instala MetalLB v0.9.6, que NO soporta las
+    # CRDs IPAddressPool/L2Advertisement (introducidas en v0.13). Además crea
+    # un ConfigMap inválido. Instalamos una versión moderna via Helm en su lugar.
+    if ! minikube addons list --profile="$PLAYGROUND_PROFILE" 2>/dev/null | grep metallb | grep -q enabled; then
+        log_info "Deshabilitando addon metallb obsoleto de Minikube (v0.9.6)..."
+        minikube addons disable metallb --profile="$PLAYGROUND_PROFILE" 2>/dev/null || true
     fi
 
-    # Usar el addon nativo de Minikube (maneja webhooks correctamente)
-    if ! minikube addons list --profile="$PLAYGROUND_PROFILE" 2>/dev/null | grep metallb | grep -q enabled; then
-        log_info "Habilitando addon metallb de Minikube..."
-        minikube addons enable metallb --profile="$PLAYGROUND_PROFILE" || true
+    # Verificar si MetalLB ya está instalado
+    if helm list -n metallb-system 2>/dev/null | grep -q metallb; then
+        log_warn "MetalLB ya instalado via Helm"
+    else
+        log_info "Instalando MetalLB via Helm (v${METALLB_VERSION})..."
+        helm repo add metallb https://metallb.github.io/metallb 2>/dev/null || true
+        helm repo update metallb
+        kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
+        helm install metallb metallb/metallb \
+            --namespace metallb-system \
+            --version "$METALLB_VERSION"
     fi
 
     # Esperar a que el controller esté realmente listo
     log_info "Esperando controller de MetalLB..."
-    kubectl wait --namespace metallb-system \
-        --for=condition=ready pod \
-        --selector=app=metallb,component=controller \
-        --timeout=120s 2>/dev/null || true
+    wait_for_pods "metallb-system" "app.kubernetes.io/component=controller" 180
 
-    # Esperar a que los webhooks respondan (test real)
-    log_info "Esperando webhook de MetalLB..."
+    log_info "Esperando speaker de MetalLB..."
+    wait_for_pods "metallb-system" "app.kubernetes.io/component=speaker" 180
+
+    # Esperar a que las CRDs estén registradas
+    log_info "Esperando CRDs de MetalLB..."
     local retries=0
-    local max_retries=40
+    local max_retries=30
     while [ $retries -lt $max_retries ]; do
-        if cat <<EOF | kubectl apply -f - 2>/dev/null; then
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
-  name: _test_pool
-  namespace: metallb-system
-spec:
-  addresses:
-  - 192.0.2.0/24
-EOF
-            kubectl delete ipaddresspool _test_pool -n metallb-system --ignore-not-found 2>/dev/null
-            log_success "Webhook de MetalLB listo"
+        if kubectl get crd ipaddresspools.metallb.io &>/dev/null; then
+            log_success "CRDs de MetalLB listos"
             break
         fi
         retries=$((retries + 1))
-        log_info "Webhook no listo, reintento ${retries}/${max_retries}..."
-        sleep 5
+        log_info "CRDs no listas, reintento ${retries}/${max_retries}..."
+        sleep 3
     done
 
     if [ $retries -eq $max_retries ]; then
-        log_error "Webhook de MetalLB no estuvo listo tras ${max_retries} intentos"
+        log_error "CRDs de MetalLB no estuvieron listas tras ${max_retries} intentos"
         log_info "Puedes configurar MetalLB manualmente más adelante"
         return 0
     fi
@@ -235,11 +235,20 @@ install_traefik() {
     helm repo add traefik https://traefik.github.io/charts 2>/dev/null || true
     helm repo update
 
-    helm install traefik traefik/traefik \
-        --namespace kube-system \
-        --set service.type=LoadBalancer \
-        --set resources.requests.cpu=50m \
-        --set resources.requests.memory=64Mi
+    # Reintentos por errores de red transitorios (EOF/tiempos de espera)
+    local attempt=0
+    while [ $attempt -lt 5 ]; do
+        if helm install traefik traefik/traefik \
+            --namespace kube-system \
+            --set service.type=LoadBalancer \
+            --set resources.requests.cpu=50m \
+            --set resources.requests.memory=64Mi; then
+            break
+        fi
+        attempt=$((attempt + 1))
+        log_warn "Traefik: helm install falló (intento ${attempt}/5), reintentando..."
+        sleep 5
+    done
 
     wait_for_deployment "kube-system" "traefik"
 

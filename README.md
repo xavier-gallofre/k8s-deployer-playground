@@ -12,6 +12,7 @@ Este proyecto proporciona un clúster Minikube preconfigurado con las herramient
 |---|---|---|
 | Minikube | v1.35.0 | Clúster K8s local |
 | Helm | v3.21.4 | Gestor de paquetes |
+| MetalLB | v0.13.12 | LoadBalancer para Minikube |
 | NGINX Ingress | v1.11.3 | Controller de ingress clásico |
 | Traefik | v3.7.11 | Controller de ingress moderno |
 | Istio | v1.30.0 | Service mesh |

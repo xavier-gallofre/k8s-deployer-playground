@@ -17,7 +17,8 @@ graph TD
     I3 --> I4["Iteración 4: Estrategias ✅"]
     I4 --> I5["Iteración 5: Control panel ✅"]
     I5 --> I6["Iteración 6: Fix & polish ✅"]
-    I6 --> I7["Iteración 7: Fix & polish v2 ⬜"]
+    I6 --> I7["Iteración 7: Fix & polish v2 ✅"]
+    I7 --> I8["Iteración 8: Setup fixes ✅"]
 
     style I1 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I2 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
@@ -25,7 +26,8 @@ graph TD
     style I4 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I5 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
     style I6 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
-    style I7 fill:#e9c46a,stroke:#e9c46a,color:#000
+    style I7 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
+    style I8 fill:#2d6a4f,stroke:#2d6a4f,color:#fff
 ```
 
 ---
@@ -145,9 +147,9 @@ graph TD
 **para** que los servicios LoadBalancer tengan una IP externa accesible.
 
 **Criterios de aceptación:**
-- MetalLB instalado via addon de Minikube
+- MetalLB instalado via Helm (v0.13+, CRDs `IPAddressPool`/`L2Advertisement`) — el addon obsoleto de Minikube se deshabilita (ver US-32)
 - Pool de IPs configurado (`.200-.250` del rango del clúster)
-- Webhook de MetalLB funciona (test con IPAddressPool temporal)
+- CRDs de MetalLB registradas tras la instalación
 - L2Advertisement configurado
 
 ### US-08: Instalar NGINX Ingress Controller ✅
@@ -449,7 +451,7 @@ graph TD
 
 ---
 
-## Iteración 7: Fix & polish v2 ⬜
+## Iteración 7: Fix & polish v2 ✅
 
 | US | Descripción | Estado |
 |---|---|---|
@@ -506,3 +508,46 @@ graph TD
 - VirtualServices `frontend-vsvc` y `api-vsvc` son accesibles vía el gateway
 - `setup.sh`, `install-istio.sh` y `guia-setup.md` usan el mismo profile
 - `guia-prueba.md` incluye la verificación del Istio Gateway
+
+---
+
+## Iteración 8: Fix setup ✅
+
+| US | Descripción | Estado |
+|---|---|---|
+| US-32 | Fix MetalLB: usar versión moderna vía Helm en vez del addon obsoleto | ✅ |
+| US-33 | Fix Argo CD: aplicar install.yaml con `--server-side` | ✅ |
+
+### US-32: Fix MetalLB ✅
+
+**Como** operador del playground,
+**quiero** que el setup de MetalLB se complete sin quedarse colgado,
+**para** que los servicios `LoadBalancer` tengan una IP externa accesible.
+
+**Contexto / causa raíz:**
+- El addon `metallb` nativo de Minikube instala MetalLB **v0.9.6** (obsoleto), que **NO soporta las CRDs `IPAddressPool`/`L2Advertisement`** (introducidas en v0.13).
+- El script intentaba aplicar esas CRDs, fallaba, y se quedaba atrapado en el bucle de reintentos del "webhook" (40 intentos × 5s), colgando el setup.
+- MetalLB v0.16.1 probado vía Helm no anunciaba correctamente las VIPs con el driver docker de Minikube (L2 basado en FRR).
+
+**Criterios de aceptación:**
+- `install_metallb()` desactiva el addon obsoleto de Minikube e instala MetalLB **v0.13.12** vía Helm (`metallb/metallb`)
+- Versión configurable vía `.env` (`METALLB_VERSION`)
+- Se espera a que las CRDs estén registradas (en vez del inútil bucle de webhook)
+- Pool de IPs (`playground-pool`) y `L2Advertisement` configurados
+- Un servicio `LoadBalancer` recibe una IP externa y es accesible desde el host (HTTP 200, ARP REACHABLE)
+
+### US-33: Fix Argo CD ✅
+
+**Como** operador del playground,
+**quiero** que la instalación de Argo CD complete todas las CRDs,
+**para** que el `argocd-applicationset-controller` arranque correctamente.
+
+**Contexto / causa raíz:**
+- La CRD `applicationsets.argoproj.io` de Argo CD v3.5.1 ocupa **~376KB**, superando el límite de **256KB** para la anotación `kubectl.kubernetes.io/last-applied-configuration` que genera `kubectl apply` (client-side).
+- El error `metadata.annotations: Too long` hacía que la CRD no se aplicara, dejando al `argocd-applicationset-controller` en crash-loop (`no matches for kind "ApplicationSet"`).
+
+**Criterios de aceptación:**
+- `setup.sh` e `install-argo.sh` aplican el manifest de Argo CD con `kubectl apply --server-side` (evita la anotación local sobredimensionada)
+- La CRD `applicationsets.argoproj.io` queda registrada
+- `argocd-applicationset-controller` arranca `1/1 Running` sin restarts
+- `docs/guia-setup.md` refleja el comando con `--server-side`
