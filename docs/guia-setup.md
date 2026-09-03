@@ -89,13 +89,39 @@ kubectl get nodes
 
 ## Paso 4: Instalar MetalLB (LoadBalancer local)
 
-### Habilitar addon de Minikube
+> **Nota:** No se usa el addon `metallb` de Minikube. Ese addon instala MetalLB **v0.9.6**, que **no soporta las CRDs `IPAddressPool`/`L2Advertisement`** (introducidas en v0.13) y bloquea el setup. Se instala una **versión moderna vía Helm** (v0.13.12), igual que hace `setup.sh`.
+
+### Instalar MetalLB via Helm
 
 ```bash
-minikube addons enable metallb --profile=k8s-playground
+helm repo add metallb https://metallb.github.io/metallb
+helm repo update metallb
+kubectl create namespace metallb-system
+helm install metallb metallb/metallb --namespace metallb-system --version 0.13.12
 ```
 
-Esperar a que el webhook esté listo (puede tardar ~1 minuto).
+Esperar a que el controller y el speaker estén listos:
+
+```bash
+kubectl wait -n metallb-system --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=180s
+kubectl wait -n metallb-system --for=condition=ready pod -l app.kubernetes.io/component=speaker --timeout=180s
+```
+
+> **Nota:** El pod del controller puede reportar `Ready` antes de que su webhook (puerto 9443) esté escuchando. Antes de aplicar el pool, espera a que el webhook responda aplicando un pool temporal; de lo contrario recibirás `connection refused`:
+
+```bash
+until kubectl apply -f - <<'EOF' >/dev/null 2>&1; do sleep 5; done
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: test-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.0.2.0/24
+EOF
+kubectl delete ipaddresspool test-pool -n metallb-system --ignore-not-found
+```
 
 ### Configurar pool de IPs
 

@@ -33,6 +33,29 @@ Se utiliza para instalar Traefik y NGINX Ingress Controller. Es un prerequisito 
 
 ---
 
+## MetalLB
+
+**Versión:** v0.13.12  
+**Papel:** Load balancer (asignación de IPs externas `LoadBalancer`)
+
+MetalLB proporciona direcciones IP externas a los servicios de tipo `LoadBalancer` en clústeres que no disponen de un balanceador de la nube, como Minikube. Anuncia las IPs a través de protocolo L2 (ARP) en la red del host.
+
+### Características principales
+
+- Soporte de modo L2 (capa 2) y BGP para anunciar las IPs
+- CRDs `IPAddressPool` y `L2Advertisement` (introducidas en v0.13)
+- Integración con el webhook de validación del controller
+- Compatible con cualquier servicio `LoadBalancer` del clúster
+
+### En este playground
+
+- Se instala via Helm (chart `metallb/metallb`) en el namespace `metallb-system`
+- Se usa **v0.13.12**, no el addon obsoleto de Minikube (v0.9.6, sin las CRDs modernas) ni v0.16.1 (el L2 basado en FRR no anunciaba bien las VIPs con el driver docker)
+- Configura un pool de IPs `192.168.58.200-192.168.58.250` (`playground-pool`) con su `L2Advertisement`
+- Asigna IPs externas a Traefik, NGINX Ingress y demás servicios `LoadBalancer`
+
+---
+
 ## NGINX Ingress Controller
 
 **Versión:** v1.11.3  

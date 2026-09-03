@@ -517,6 +517,7 @@ graph TD
 |---|---|---|
 | US-32 | Fix MetalLB: usar versión moderna vía Helm en vez del addon obsoleto | ✅ |
 | US-33 | Fix Argo CD: aplicar install.yaml con `--server-side` | ✅ |
+| US-34 | Actualizar documentación para reflejar el setup real | ✅ |
 
 ### US-32: Fix MetalLB ✅
 
@@ -553,3 +554,19 @@ graph TD
 - La CRD `applicationsets.argoproj.io` queda registrada
 - `argocd-applicationset-controller` arranca `1/1 Running` sin restarts
 - `docs/guia-setup.md` refleja el comando con `--server-side`
+
+### US-34: Actualizar documentación para reflejar el setup real ✅
+
+**Como** mantenedor del playground,
+**quiero** que toda la documentación refleje el setup real que funciona,
+**para** que no haya pasos obsoletos (addon roto de Minikube) que confundan o reproduzcan fallos.
+
+**Contexto / causa raíz:**
+- Tras arreglar el setup (US-32 MetalLB vía Helm, US-33 Argo CD `--server-side`), varias guías seguían documentando el **enfoque obsoleto**: `docs/guia-setup.md` indicaba `minikube addons enable metallb` y `docs/guia-prueba.md` atribuía el namespace `metallb-system` al addon de Minikube.
+- `docs/tecnologias.md` no tenía una entrada dedicada de MetalLB pese a ser un componente central del network del playground.
+
+**Criterios de aceptación:**
+- `docs/guia-setup.md` (Paso 4) instala MetalLB **v0.13.12 vía Helm**, documenta la espera al webhook y ya no usa el addon obsoleto
+- `docs/guia-prueba.md` atribuye `metallb-system` a Helm (v0.13.12) y añade una nota de troubleshooting del `connection refused` por el webhook
+- `docs/tecnologias.md` incluye una entrada de MetalLB (versión, papel, instalación vía Helm y pool de IPs)
+- No quedan referencias a `minikube addons enable metallb` ni "Minikube addon" para MetalLB en la documentación

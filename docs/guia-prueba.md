@@ -68,7 +68,7 @@ Deben existir estos namespaces:
 
 | Namespace | Creado por |
 |---|---|
-| `metallb-system` | Minikube addon |
+| `metallb-system` | Helm (v0.13.12) |
 | `ingress-nginx` | Minikube addon |
 | `istio-system` | Istio |
 | `argocd` | Setup |
@@ -595,6 +595,8 @@ istioctl proxy-config routes <pod-name> -n demo
 
 ### MetalLB no asigna External-IP
 
+> **Nota:** MetalLB se instala **via Helm v0.13.12** (no con el addon obsoleto de Minikube, que era v0.9.6 y no soporta las CRDs `IPAddressPool`/`L2Advertisement`).
+
 ```bash
 # Verificar IP pool
 kubectl get ipaddresspool -n metallb-system
@@ -605,6 +607,8 @@ kubectl get l2advertisements -n metallb-system
 # Verificar logs del controller
 kubectl logs -n metallb-system -l app=metallb,component=controller
 ```
+
+Si recibes `connection refused` al aplicar el pool, el webhook del controller (puerto 9443) aún no está escuchando aunque el pod reporte `Ready`; espera unos segundos y reintenta, o aplica un pool temporal de prueba hasta que el webhook responda.
 
 ### Argo CD no sincroniza
 
