@@ -139,16 +139,34 @@ install_metallb() {
     fi
 
     # Verificar si MetalLB ya está instalado
-    if helm list -n metallb-system 2>/dev/null | grep -q metallb; then
-        log_warn "MetalLB ya instalado via Helm"
+    if kubectl get deployment metallb-controller -n metallb-system &>/dev/null; then
+        log_warn "MetalLB ya instalado"
     else
         log_info "Instalando MetalLB via Helm (v${METALLB_VERSION})..."
         helm repo add metallb https://metallb.github.io/metallb 2>/dev/null || true
-        helm repo update metallb
+        # El update puede fallar sin red; el chart solo necesita la cache local.
+        helm repo update metallb 2>/dev/null || true
         kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
-        helm install metallb metallb/metallb \
-            --namespace metallb-system \
-            --version "$METALLB_VERSION"
+
+        # Reintentos por errores de red transitorios (DNS timeouts, EOF...)
+        local attempt=0
+        local install_ok=0
+        while [ $attempt -lt 5 ]; do
+            if helm install metallb metallb/metallb \
+                --namespace metallb-system \
+                --version "$METALLB_VERSION"; then
+                install_ok=1
+                break
+            fi
+            attempt=$((attempt + 1))
+            log_warn "MetalLB: helm install falló (intento ${attempt}/5), reintentando..."
+            sleep 5
+        done
+
+        if [ "$install_ok" -ne 1 ]; then
+            log_error "No se pudo instalar MetalLB tras ${attempt} intentos"
+            return 1
+        fi
     fi
 
     # Esperar a que el controller esté realmente listo
