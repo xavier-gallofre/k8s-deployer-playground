@@ -532,7 +532,7 @@ graph TD
 **Criterios de aceptación:**
 - `install_metallb()` desactiva el addon obsoleto de Minikube e instala MetalLB **v0.13.12** vía Helm (`metallb/metallb`)
 - Versión configurable vía `.env` (`METALLB_VERSION`)
-- Se espera a que las CRDs estén registradas (en vez del inútil bucle de webhook)
+- Se espera a que el webhook de validación responda con un pool temporal (evita el `connection refused` por la carrera con el puerto 9443 del controller)
 - Pool de IPs (`playground-pool`) y `L2Advertisement` configurados
 - Un servicio `LoadBalancer` recibe una IP externa y es accesible desde el host (HTTP 200, ARP REACHABLE)
 

@@ -158,22 +158,37 @@ install_metallb() {
     log_info "Esperando speaker de MetalLB..."
     wait_for_pods "metallb-system" "app.kubernetes.io/component=speaker" 180
 
-    # Esperar a que las CRDs estén registradas
-    log_info "Esperando CRDs de MetalLB..."
+    # Esperar a que el webhook de validación responda. El pod del controller
+    # puede estar "Ready" (su readinessProbe mira /metrics, no el puerto 9443)
+    # antes de que el webhook esté escuchando, provocando "connection refused"
+    # al aplicar el pool. Probamos la ruta real (apiserver -> webhook-service ->
+    # controller:9443) aplicando un pool temporal.
+    log_info "Esperando webhook de MetalLB..."
     local retries=0
-    local max_retries=30
+    local max_retries=40
     while [ $retries -lt $max_retries ]; do
-        if kubectl get crd ipaddresspools.metallb.io &>/dev/null; then
-            log_success "CRDs de MetalLB listos"
+        kubectl delete ipaddresspool test-pool -n metallb-system --ignore-not-found >/dev/null 2>&1
+        if cat <<EOF | kubectl apply -f - >/dev/null 2>&1; then
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: test-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.0.2.0/24
+EOF
+            kubectl delete ipaddresspool test-pool -n metallb-system --ignore-not-found >/dev/null 2>&1
+            log_success "Webhook de MetalLB listo"
             break
         fi
         retries=$((retries + 1))
-        log_info "CRDs no listas, reintento ${retries}/${max_retries}..."
-        sleep 3
+        log_info "Webhook no listo, reintento ${retries}/${max_retries}..."
+        sleep 5
     done
 
     if [ $retries -eq $max_retries ]; then
-        log_error "CRDs de MetalLB no estuvieron listas tras ${max_retries} intentos"
+        log_error "Webhook de MetalLB no estubo listo tras ${max_retries} intentos"
         log_info "Puedes configurar MetalLB manualmente más adelante"
         return 0
     fi
