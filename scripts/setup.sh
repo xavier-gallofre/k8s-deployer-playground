@@ -293,7 +293,11 @@ install_argo() {
     fi
 
     kubectl create namespace argocd
-    kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGO_CD_VERSION}/manifests/install.yaml"
+
+    # NOTA: la CRD `applicationsets.argoproj.io` de Argo CD supera los 256KB, lo
+    # que excede el límite de la anotación `last-applied-configuration` de
+    # `kubectl apply` (client-side). Se usa `--server-side` para evitar ese error.
+    kubectl apply --server-side -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGO_CD_VERSION}/manifests/install.yaml"
 
     wait_for_pods "argocd"
 

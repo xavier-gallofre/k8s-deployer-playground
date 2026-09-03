@@ -182,7 +182,10 @@ kubectl get pods -n istio-system
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.1/manifests/install.yaml
+
+# NOTA: la CRD `applicationsets.argoproj.io` de Argo CD supera los 256KB, lo que
+# excede el límite de `kubectl apply` (client-side). Usa `--server-side`.
+kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.1/manifests/install.yaml
 ```
 
 Esperar a que esté listo:
